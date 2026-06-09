@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Du logigramme à l'objet — Le Bocal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --lb-blue: #0066FF; --lb-blue-dark: #0044BB; --lb-blue-light: #00CCFF;
+  --lb-blue-50: #E6F0FF; --lb-blue-100: #B3CFFF;
+  --lb-title: #1F2937; --lb-body: #374151; --lb-bg: #FFFFFF;
+  --teal-50: #E6F0FF; --teal-100: #B3CFFF; --teal-600: #0066FF; --teal-800: #0044BB; --teal-900: #002B7A;
+  --amber-50: #FFF7E6; --amber-100: #FFE0A3; --amber-400: #E6A817; --amber-600: #B07A00; --amber-900: #4A3200;
+  --purple-50: #E6F0FF; --purple-100: #B3CFFF; --purple-600: #0066FF; --purple-800: #0044BB;
+  --gray-50: #F3F4F6; --gray-100: #E5E7EB; --gray-400: #9CA3AF; --gray-600: #6B7280; --gray-800: #374151;
+  --coral-50: #FEE6E6; --coral-100: #FCBCBC; --coral-600: #CC2200; --coral-800: #991A00;
+  --ink: #1F2937; --ink-light: #374151; --sand: #F3F4F6; --paper: #FFFFFF;
+  --border: rgba(31,41,55,0.12);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;background:var(--paper);color:var(--ink);font-size:16px;line-height:1.7;}
+
+/* HERO */
+.hero{background:#002B7A;color:#E6F0FF;padding:4rem 2rem 3.5rem;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;top:-60px;right:-80px;width:320px;height:320px;border-radius:50%;background:#0044BB;opacity:0.35;}
+.hero::after{content:'';position:absolute;bottom:-40px;left:20%;width:180px;height:180px;border-radius:50%;background:#0066FF;opacity:0.2;}
+.hero-inner{max-width:1100px;margin:0 auto;position:relative;z-index:1;}
+.hero-tag{display:inline-block;font-size:11px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:#B3CFFF;background:rgba(255,255,255,0.1);padding:4px 12px;border-radius:20px;margin-bottom:1.25rem;}
+.hero h1{font-family:'Oswald',sans-serif;font-size:clamp(2rem,5vw,3.2rem);line-height:1.15;color:#fff;margin-bottom:1rem;}
+.hero-sub{font-size:1.05rem;color:#B3CFFF;max-width:560px;margin-bottom:2rem;opacity:0.9;}
+
+/* NAV */
+.nav-tabs{background:#0044BB;border-bottom:1px solid rgba(255,255,255,0.08);position:sticky;top:0;z-index:100;}
+.nav-tabs-inner{max-width:1100px;margin:0 auto;display:flex;overflow-x:auto;scrollbar-width:none;}
+.nav-tabs-inner::-webkit-scrollbar{display:none;}
+.tab-btn{background:none;border:none;color:rgba(225,245,238,0.55);font-family:'Inter',sans-serif;font-size:13px;font-weight:500;padding:0.85rem 1.25rem;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:color 0.2s,border-color 0.2s;}
+.tab-btn:hover{color:#B3CFFF;}
+.tab-btn.active{color:#fff;border-bottom-color:#B3CFFF;}
+
+/* LAYOUT */
+.container{max-width:1100px;margin:0 auto;padding:2.5rem 2rem;}
+.section{display:none;}
+.section.active{display:block;}
+
+/* SECTION HEADER */
+.section-eyebrow{font-size:11px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:var(--lb-blue);margin-bottom:0.5rem;}
+.section-title{font-family:'Oswald',sans-serif;font-size:clamp(1.6rem,3vw,2.2rem);line-height:1.2;color:var(--ink);margin-bottom:0.75rem;}
+.section-lead{font-size:1.05rem;color:var(--ink-light);max-width:700px;margin-bottom:2.5rem;line-height:1.6;}
+.section-sub-title{font-family:'Oswald',sans-serif;font-size:1.3rem;color:var(--ink);margin-bottom:0.4rem;margin-top:0.5rem;}
+.section-sub-lead{font-size:13px;color:var(--ink-light);margin-bottom:1.25rem;}
+
+/* CONCEPTS */
+.concept-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1rem;margin-bottom:2.5rem;}
+.concept-card{background:var(--teal-50);border:1px solid var(--teal-100);border-radius:12px;padding:1.25rem 1rem;}
+.concept-card .icon{font-size:1.5rem;margin-bottom:0.5rem;display:block;}
+.concept-card h3{font-size:15px;font-weight:500;color:var(--teal-800);margin-bottom:0.35rem;}
+.concept-card p{font-size:13px;color:var(--teal-600);line-height:1.5;}
+
+/* ONGLETS FICHES */
+.fiche-tabs{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap;}
+.fiche-tab-btn{background:var(--gray-50);border:1.5px solid var(--gray-100);border-radius:20px;padding:6px 16px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;color:var(--gray-600);cursor:pointer;transition:all 0.15s;}
+.fiche-tab-btn:hover{border-color:var(--lb-blue);color:var(--lb-blue);background:var(--lb-blue-50);}
+.fiche-tab-btn.active{background:var(--lb-blue);color:#fff;border-color:var(--lb-blue);}
+
+/* FICHE CARD */
+.fiche-card{background:var(--paper);border:1.5px solid var(--gray-100);border-radius:12px;overflow:hidden;margin-bottom:0.5rem;}
+.fiche-header{background:var(--lb-blue-50);border-bottom:1px solid var(--lb-blue-100);padding:1rem 1.25rem;display:flex;align-items:flex-start;gap:1rem;flex-wrap:wrap;}
+.fiche-badge{background:var(--lb-blue);color:#fff;font-family:'Oswald',sans-serif;font-size:16px;font-weight:600;width:42px;height:42px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.fiche-badge.s1{background:#534AB7;}
+.fiche-title{font-size:15px;font-weight:500;color:var(--ink);margin-bottom:3px;}
+.fiche-attendu{font-size:11px;color:var(--lb-blue);}
+.fiche-meta-right{margin-left:auto;display:flex;flex-direction:column;gap:4px;align-items:flex-end;}
+.fiche-duree,.fiche-materiel{font-size:12px;color:var(--gray-600);white-space:nowrap;}
+.fiche-body{display:grid;grid-template-columns:1fr 1fr;gap:0;}
+@media(max-width:620px){.fiche-body{grid-template-columns:1fr;}}
+.fiche-col{padding:1.25rem;}
+.fiche-col+.fiche-col{border-left:1px solid var(--gray-100);}
+@media(max-width:620px){.fiche-col+.fiche-col{border-left:none;border-top:1px solid var(--gray-100);}}
+.fiche-section-label{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.08em;color:var(--lb-blue);margin-bottom:0.5rem;}
+.fiche-text{font-size:13px;color:var(--ink-light);line-height:1.6;}
+.fiche-steps{display:flex;flex-direction:column;gap:8px;}
+.fiche-step{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--ink-light);line-height:1.5;}
+.fiche-step-num{background:var(--lb-blue);color:#fff;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex-shrink:0;margin-top:1px;}
+.fiche-list{padding-left:1.2rem;margin:0;}
+.fiche-list li{font-size:13px;color:var(--ink-light);line-height:1.6;margin-bottom:4px;}
+.fiche-tip{background:var(--lb-blue-50);border-left:3px solid var(--lb-blue);border-radius:0 6px 6px 0;padding:8px 12px;font-size:12px;color:var(--lb-title);margin-top:1rem;line-height:1.5;}
+
+/* LOGIGRAMME VIERGE */
+.logi-legende{display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:0.75rem;}
+.logi-legende-item{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--gray-600);}
+.logi-shape-rect{width:36px;height:22px;background:var(--gray-50);border:1.5px solid var(--gray-400);border-radius:3px;flex-shrink:0;}
+.logi-shape-diamond{width:24px;height:24px;background:var(--amber-50);border:1.5px solid var(--amber-400);transform:rotate(45deg);flex-shrink:0;}
+.logi-shape-oval{width:36px;height:22px;background:var(--lb-blue-50);border:1.5px solid var(--lb-blue);border-radius:20px;flex-shrink:0;}
+.logi-shape-arrow{width:36px;height:2px;background:var(--lb-blue);position:relative;flex-shrink:0;}
+.logi-shape-arrow::after{content:'';position:absolute;right:-1px;top:-4px;border-left:8px solid var(--lb-blue);border-top:5px solid transparent;border-bottom:5px solid transparent;}
+
+/* FMTTN */
+.fmttn-band{background:var(--amber-50);border:1px solid var(--amber-100);border-radius:10px;padding:1rem 1.25rem;margin-bottom:2.5rem;}
+.fmttn-band h3{font-size:14px;font-weight:500;color:var(--amber-600);margin-bottom:0.5rem;}
+.fmttn-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:0.5rem;}
+.fmttn-item{background:var(--paper);border-radius:6px;padding:6px 10px;}
+.fmttn-item .level{font-size:11px;font-weight:500;color:var(--amber-600);}
+.fmttn-item .skill{font-size:11px;color:var(--ink-light);}
+
+/* PIPELINE */
+.pipeline{display:flex;flex-direction:column;gap:0;margin-bottom:2.5rem;position:relative;}
+.pipeline::before{content:'';position:absolute;left:20px;top:24px;bottom:24px;width:2px;background:var(--border);}
+.pipe-step{display:flex;gap:1rem;padding:1rem 0;position:relative;}
+.pipe-num{width:40px;height:40px;background:var(--teal-50);border:1px solid var(--teal-100);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;color:var(--teal-800);flex-shrink:0;position:relative;z-index:1;}
+.pipe-content{flex:1;padding-top:6px;}
+.pipe-content h3{font-size:15px;font-weight:500;color:var(--ink);margin-bottom:3px;}
+.pipe-content p{font-size:13px;color:var(--ink-light);line-height:1.5;}
+.pipe-tools{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.tool-tag{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500;}
+.tag-free{background:var(--teal-50);color:var(--teal-800);border:1px solid var(--teal-100);}
+.tag-paid{background:var(--coral-50);color:var(--coral-600);border:1px solid var(--coral-100);}
+.tag-alt{background:var(--gray-50);color:var(--gray-600);border:1px solid var(--gray-100);}
+
+/* OUTILS COMPARE */
+.tools-compare{background:var(--sand);border-radius:12px;padding:1.5rem;margin-bottom:2.5rem;}
+.tools-compare h3{font-size:14px;font-weight:500;color:var(--ink);margin-bottom:1rem;}
+.tool-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px;font-size:12px;}
+.tool-row.header{font-weight:500;color:var(--ink-light);font-size:11px;text-transform:uppercase;letter-spacing:0.08em;border-bottom:1px solid var(--border);padding-bottom:8px;}
+.tool-row .status{display:flex;align-items:center;gap:4px;}
+.dot-free{width:7px;height:7px;border-radius:50%;background:var(--teal-600);display:inline-block;}
+.dot-warn{width:7px;height:7px;border-radius:50%;background:var(--amber-400);display:inline-block;}
+
+/* ARBRE DÉCISION */
+.tree-node{border-radius:10px;padding:1rem 1.25rem;margin-bottom:0.75rem;}
+.tree-question{background:var(--purple-50);border:1px solid var(--purple-100);}
+.tree-question h4{font-size:14px;font-weight:500;color:var(--purple-800);margin-bottom:0.5rem;}
+.tree-answers{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.tree-yes{background:var(--teal-50);border:1px solid var(--teal-100);border-radius:8px;padding:8px 12px;font-size:12px;}
+.tree-yes .ans-label{font-weight:500;color:var(--teal-800);margin-bottom:2px;}
+.tree-yes .ans-text{color:var(--teal-600);}
+.tree-no{background:var(--coral-50);border:1px solid var(--coral-100);border-radius:8px;padding:8px 12px;font-size:12px;}
+.tree-no .ans-label{font-weight:500;color:var(--coral-600);margin-bottom:2px;}
+.tree-no .ans-text{color:var(--coral-800);}
+.conclusion-green{background:var(--teal-50);border:2px solid var(--teal-600);border-radius:10px;padding:1rem 1.25rem;margin-top:1rem;}
+.conclusion-green h4{font-size:14px;font-weight:500;color:var(--teal-800);margin-bottom:3px;}
+.conclusion-green p{font-size:12px;color:var(--teal-600);}
+.conclusion-red{background:var(--coral-50);border:2px solid var(--coral-600);border-radius:10px;padding:1rem 1.25rem;margin-top:0.75rem;}
+.conclusion-red h4{font-size:14px;font-weight:500;color:var(--coral-800);margin-bottom:3px;}
+.conclusion-red p{font-size:12px;color:var(--coral-600);}
+
+/* ESTIMATEUR */
+.estimator-block{margin-bottom:2rem;}
+.estimator-label{font-size:15px;font-weight:500;color:var(--ink);margin-bottom:0.75rem;}
+.size-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;}
+.size-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:0.9rem 0.5rem;border:1.5px solid var(--gray-100);border-radius:10px;background:var(--paper);cursor:pointer;transition:border-color 0.15s,background 0.15s;font-family:'Inter',sans-serif;}
+.size-btn:hover,.size-btn.active{border-color:var(--lb-blue);background:var(--lb-blue-50);}
+.size-icon{font-size:1.4rem;}
+.size-name{font-size:13px;font-weight:500;color:var(--ink);}
+.size-ex{font-size:11px;color:var(--ink-light);text-align:center;}
+.size-dim{font-size:11px;color:var(--lb-blue);font-weight:500;}
+.color-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;}
+.color-btn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:0.75rem 0.5rem;border:1.5px solid var(--gray-100);border-radius:10px;background:var(--paper);cursor:pointer;transition:border-color 0.15s,background 0.15s;font-family:'Inter',sans-serif;}
+.color-btn:hover,.color-btn.active{border-color:var(--lb-blue);background:var(--lb-blue-50);}
+.color-dot{width:14px;height:14px;border-radius:50%;display:inline-block;}
+.color-name{font-size:12px;font-weight:500;color:var(--ink);}
+.color-note{font-size:11px;color:var(--ink-light);}
+.estimator-result{margin-top:1.25rem;background:var(--lb-blue-50);border:1.5px solid var(--lb-blue-100);border-radius:12px;padding:1.25rem;}
+.result-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:0.75rem;}
+.result-label{font-size:11px;color:var(--lb-blue);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:2px;}
+.result-value{font-size:20px;font-weight:500;color:var(--lb-title);}
+.result-tip{font-size:13px;line-height:1.5;padding:8px 12px;border-radius:8px;}
+.tip-good{background:#e6f4ee;color:#1a5c36;}
+.tip-mid{background:var(--amber-50);color:var(--amber-600);}
+.tip-warn{background:var(--coral-50);color:var(--coral-600);}
+.cost-row{display:grid;grid-template-columns:1fr auto;align-items:center;gap:1rem;margin-bottom:0.75rem;}
+.cost-row label{font-size:13px;color:var(--ink-light);}
+.cost-row input{width:90px;padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:var(--paper);text-align:right;}
+
+/* BOCAL STATS */
+.bocal-intro{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:2rem;align-items:stretch;}
+@media(max-width:500px){.bocal-intro{grid-template-columns:1fr;}}
+.bocal-stat{background:var(--sand);border-radius:10px;padding:1rem 1.25rem;display:flex;flex-direction:column;justify-content:flex-start;}
+.bocal-stat .num{font-size:1.4rem;font-weight:500;color:var(--teal-800);line-height:1.3;}
+.bocal-stat .desc{font-size:12px;color:var(--ink-light);}
+
+/* IDEAS GRID */
+.ideas-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin-bottom:2.5rem;counter-reset:idea;}
+.idea-card{background:var(--paper);border:1px solid var(--border);border-radius:10px;padding:1rem;counter-increment:idea;position:relative;}
+.idea-card::before{content:counter(idea);position:absolute;top:-10px;left:12px;background:var(--teal-600);color:#fff;font-size:10px;font-weight:500;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.idea-card p{font-size:13px;color:var(--ink-light);line-height:1.5;}
+
+/* SOURCES */
+.sources{margin-bottom:2rem;}
+.source-item{padding:0.6rem 0;border-bottom:1px solid var(--border);font-size:13px;color:var(--ink-light);}
+.source-item a{color:var(--teal-600);text-decoration:none;}
+.source-item a:hover{text-decoration:underline;}
+
+/* FOOTER */
+.footer{background:#002B7A;color:#B3CFFF;padding:2rem;text-align:center;font-size:13px;}
+.footer a{color:#B3CFFF;text-decoration:underline;}
+.footer .cc{opacity:0.6;margin-top:0.5rem;font-size:12px;}
+
+@media(max-width:600px){
+  .tree-answers{grid-template-columns:1fr;}
+  .tool-row{grid-template-columns:1fr;}
+  .tool-row.header{display:none;}
+}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <svg style="position:absolute;bottom:0;left:0;width:420px;height:280px;pointer-events:none;z-index:0;" viewBox="0 0 420 280" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="0" cy="280" r="320" fill="#0044BB" fill-opacity="0.07"/>
+      <circle cx="0" cy="280" r="190" fill="#0055DD" fill-opacity="0.09"/>
+      <circle cx="0" cy="280" r="90" fill="#0066FF" fill-opacity="0.12"/>
+      <circle cx="80" cy="220" r="55" fill="#0066FF" fill-opacity="0.11"/>
+      <circle cx="155" cy="140" r="40" fill="#0077FF" fill-opacity="0.09"/>
+      <circle cx="220" cy="70" r="28" fill="#0088FF" fill-opacity="0.08"/>
+      <circle cx="278" cy="18" r="18" fill="#0099FF" fill-opacity="0.07"/>
+    </svg>
+    <span class="hero-tag">Le Bocal · Cycle 1 · 2026</span>
+    <h1><span style="color:#fff;">Du</span> <span style="color:#00CCFF;">logigramme</span> <span style="color:#fff;">à l'</span><span style="color:#00CCFF;">objet</span></h1>
+    <p class="hero-sub" style="max-width:none;">Fiches activités, workflow et outils — ancrés dans le référentiel FMTTN (FWB)</p>
+  </div>
+</div>
+
+<nav class="nav-tabs">
+  <div class="nav-tabs-inner">
+    <button class="tab-btn active" onclick="showTab('algo')">1 · Penser avant de cliquer</button>
+    <button class="tab-btn" onclick="showTab('pipeline')">2 · De l'image à l'objet</button>
+    <button class="tab-btn" onclick="showTab('decision')">3 · Vaut-il la peine d'imprimer ?</button>
+    <button class="tab-btn" onclick="showTab('cout')">4 · Calculer le coût</button>
+    <button class="tab-btn" onclick="showTab('bocal')">5 · Ce qu'on a appris</button>
+  </div>
+</nav>
+
+<!-- SECTION 1 : ALGO -->
+<div id="tab-algo" class="section active">
+  <div class="container">
+    <p class="section-eyebrow">Partie 1</p>
+    <h1 class="section-title">Penser avant de cliquer</h1>
+    <p class="section-lead">Avant d'allumer un ordinateur, les élèves peuvent déjà penser comme des programmeurs. Quatre concepts, trois fiches activités ancrées dans le référentiel FMTTN, un modèle de logigramme vierge.</p>
+    <div class="concept-grid">
+      <div class="concept-card"><span class="icon">➡️</span><h3>Algorithme</h3><p>Suite d'instructions précises pour accomplir une tâche. Exemple : les étapes pour aller de la classe à la bibliothèque.</p></div>
+      <div class="concept-card"><span class="icon">📋</span><h3>Séquence</h3><p>Les instructions s'exécutent dans un ordre précis, l'une après l'autre, sans sauter d'étape.</p></div>
+      <div class="concept-card"><span class="icon">🔀</span><h3>Condition</h3><p>Une instruction qui dépend d'une situation. <em>Si je rencontre un mur → je tourne. Sinon → j'avance.</em></p></div>
+      <div class="concept-card"><span class="icon">🔄</span><h3>Boucle</h3><p>Une instruction qui se répète jusqu'à ce qu'une condition soit remplie. Exemple : avancer jusqu'à la porte.</p></div>
+    </div>
+
+    <h2 class="section-sub-title">Trois fiches activités prêtes à utiliser</h2>
+    <p class="section-sub-lead">Chaque fiche est ancrée dans un attendu précis du référentiel FMTTN. Aucun matériel numérique requis — un crayon et du papier suffisent.</p>
+
+    <div class="fiche-tabs">
+      <button class="fiche-tab-btn active" onclick="showFiche(this,'p5')">P5 · Séquence</button>
+      <button class="fiche-tab-btn" onclick="showFiche(this,'p6')">P6 · Condition</button>
+      <button class="fiche-tab-btn" onclick="showFiche(this,'s1')">S1 · Boucle</button>
+    </div>
+
+    <div id="fiche-p5" class="fiche-card">
+      <div class="fiche-header">
+        <div class="fiche-badge">P5</div>
+        <div><div class="fiche-title">De ma classe à la bibliothèque</div><div class="fiche-attendu">FMTTN · C12 · Concevoir un logigramme séquentiel de déplacement</div></div>
+        <div class="fiche-meta-right"><span class="fiche-duree">⏱ 45 min</span><span class="fiche-materiel">✏️ Papier, crayon</span></div>
+      </div>
+      <div class="fiche-body">
+        <div class="fiche-col">
+          <div class="fiche-section-label">Situation de départ</div>
+          <p class="fiche-text">L'enseignant demande aux élèves d'expliquer à un robot imaginaire — qui ne connaît pas l'école — comment aller de la classe jusqu'à la bibliothèque. Le robot ne comprend que des instructions simples : avancer, tourner à gauche, tourner à droite, monter les escaliers, ouvrir une porte.</p>
+          <div class="fiche-section-label" style="margin-top:1rem;">Déroulement</div>
+          <div class="fiche-steps">
+            <div class="fiche-step"><span class="fiche-step-num">1</span><span>Individuellement : chaque élève écrit les instructions en langage naturel (5 min)</span></div>
+            <div class="fiche-step"><span class="fiche-step-num">2</span><span>Par deux : comparer les instructions. Sont-elles dans le même ordre ? Y en a-t-il qui manquent ? (10 min)</span></div>
+            <div class="fiche-step"><span class="fiche-step-num">3</span><span>Classe entière : construire le logigramme collectif au tableau avec les formes. Utiliser le modèle vierge ci-dessous. (20 min)</span></div>
+            <div class="fiche-step"><span class="fiche-step-num">4</span><span>Un élève "joue le robot" et suit les instructions à la lettre. Corriger ensemble ce qui ne fonctionne pas. (10 min)</span></div>
+          </div>
+        </div>
+        <div class="fiche-col">
+          <div class="fiche-section-label">Ce que l'élève apprend</div>
+          <ul class="fiche-list">
+            <li>Décomposer un déplacement en étapes précises et ordonnées</li>
+            <li>Comprendre qu'un algorithme ne tolère pas l'implicite</li>
+            <li>Lire et compléter un logigramme séquentiel</li>
+            <li>Identifier une erreur dans une séquence et la corriger</li>
+          </ul>
+          <div class="fiche-section-label" style="margin-top:1rem;">Différenciation</div>
+          <p class="fiche-text"><strong>Simplifier :</strong> donner le trajet tout fait à ordonner (cartes à remettre dans l'ordre).<br><strong>Enrichir :</strong> inclure des vérifications (la porte est-elle fermée à clé ?).</p>
+          <div class="fiche-tip">💡 Faire le trajet en vrai avant la séance pour lister les actions avec les élèves. Le réel ancre mieux que l'imaginaire.</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="fiche-p6" class="fiche-card" style="display:none;">
+      <div class="fiche-header">
+        <div class="fiche-badge">P6</div>
+        <div><div class="fiche-title">Mon personnage dans le labyrinthe</div><div class="fiche-attendu">FMTTN · C12-C13 · Logigramme avec condition · Préparatoire à Scratch</div></div>
+        <div class="fiche-meta-right"><span class="fiche-duree">⏱ 50 min</span><span class="fiche-materiel">✏️ Papier quadrillé, feutre</span></div>
+      </div>
+      <div class="fiche-body">
+        <div class="fiche-col">
+          <div class="fiche-section-label">Situation de départ</div>
+          <p class="fiche-text">L'enseignant dessine un labyrinthe simple (5×5 cases) au tableau. Un personnage doit rejoindre la sortie. Le robot ne "voit" que la case devant lui. Les élèves doivent écrire les instructions qui fonctionnent pour <em>n'importe quel</em> labyrinthe — c'est ici qu'apparaît la condition : <em>si mur devant → tourner, sinon → avancer.</em></p>
+          <div class="fiche-section-label" style="margin-top:1rem;">Déroulement</div>
+          <div class="fiche-steps">
+            <div class="fiche-step"><span class="fiche-step-num">1</span><span>Traverser le labyrinthe avec des instructions séquentielles. Ça marche… mais seulement pour CE labyrinthe. (10 min)</span></div>
+            <div class="fiche-step"><span class="fiche-step-num">2</span><span>Changer le labyrinthe. Les mêmes instructions ne fonctionnent plus. Introduire la notion de condition. (10 min)</span></div>
+            <div class="fiche-step"><span class="fiche-step-num">3</span><span>Par groupes : construire un logigramme avec condition, en utilisant le losange pour les décisions. (20 min)</span></div>
+            <div class="fiche-step"><span class="fiche-step-num">4</span><span>Tester le logigramme sur un troisième labyrinthe dessiné par un autre groupe. (10 min)</span></div>
+          </div>
+        </div>
+        <div class="fiche-col">
+          <div class="fiche-section-label">Ce que l'élève apprend</div>
+          <ul class="fiche-list">
+            <li>Distinguer séquence et condition dans un algorithme</li>
+            <li>Utiliser le losange pour représenter une décision</li>
+            <li>Comprendre qu'un bon algorithme fonctionne dans plusieurs cas</li>
+            <li>Tester et déboguer un logigramme</li>
+          </ul>
+          <div class="fiche-section-label" style="margin-top:1rem;">Lien avec Scratch</div>
+          <p class="fiche-text">Cette activité prépare directement le bloc <em>"si… alors… sinon"</em> dans Scratch. Les élèves reconnaissent immédiatement la structure quand ils ouvrent Scratch.</p>
+          <div class="fiche-tip">💡 Utiliser un labyrinthe sur papier millimétré A3 — assez grand pour que les groupes y travaillent à plusieurs mains.</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="fiche-s1" class="fiche-card" style="display:none;">
+      <div class="fiche-header">
+        <div class="fiche-badge s1">S1</div>
+        <div><div class="fiche-title">Comment l'aspirateur robot nettoie une pièce</div><div class="fiche-attendu">FMTTN · S1 · Séquence, condition et boucle · Lien IA</div></div>
+        <div class="fiche-meta-right"><span class="fiche-duree">⏱ 55 min</span><span class="fiche-materiel">✏️ Papier, optionnel : vidéo</span></div>
+      </div>
+      <div class="fiche-body">
+        <div class="fiche-col">
+          <div class="fiche-section-label">Situation de départ</div>
+          <p class="fiche-text">Montrer (ou décrire) un aspirateur robot en action. Il avance, détecte les obstacles, tourne, revient, et recommence — jusqu'à ce que toute la surface soit nettoyée. Comment est-il programmé ? Peut-il vraiment "décider" tout seul ?</p>
+          <div class="fiche-section-label" style="margin-top:1rem;">Déroulement</div>
+          <div class="fiche-steps">
+            <div class="fiche-step"><span class="fiche-step-num">1</span><span>Lister les actions élémentaires du robot. Classe entière. (10 min)</span></div>
+            <div class="fiche-step"><span class="fiche-step-num">2</span><span>Construire le logigramme avec les trois formes (rectangle, losange, flèche de retour). (20 min)</span></div>
+            <div class="fiche-step"><span class="fiche-step-num">3</span><span>Discussion : est-ce que le robot "réfléchit" vraiment ? Quel lien avec l'intelligence artificielle ? (15 min)</span></div>
+            <div class="fiche-step"><span class="fiche-step-num">4</span><span>Comparer deux stratégies de nettoyage (aléatoire vs systématique). Laquelle est la plus efficace ? (10 min)</span></div>
+          </div>
+        </div>
+        <div class="fiche-col">
+          <div class="fiche-section-label">Ce que l'élève apprend</div>
+          <ul class="fiche-list">
+            <li>Combiner séquence, condition et boucle dans un seul logigramme</li>
+            <li>Comprendre qu'une boucle nécessite une condition d'arrêt</li>
+            <li>Faire le lien entre algorithme et IA : l'IA exécute des algorithmes complexes, elle ne "pense" pas</li>
+            <li>Comparer des stratégies selon leur efficacité</li>
+          </ul>
+          <div class="fiche-section-label" style="margin-top:1rem;">Lien IA</div>
+          <p class="fiche-text">Cette activité ouvre sur : "Qu'est-ce que l'IA fait de plus qu'un algorithme simple ?" — elle apprend de ses erreurs (renforcement), ce que le robot basique ne fait pas. Un point d'entrée concret pour aborder l'IA en classe.</p>
+          <div class="fiche-tip">💡 Si vous avez accès à un vrai aspirateur robot, une démonstration de 2 minutes remplace 10 minutes d'explications.</div>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="section-sub-title" style="margin-top:2.5rem;">Modèle de logigramme vierge</h2>
+    <p class="section-sub-lead">À projeter, imprimer ou compléter en classe. La légende des formes est intégrée.</p>
+    <div class="logi-legende">
+      <div class="logi-legende-item"><div class="logi-shape-rect"></div><span>Action (rectangle)</span></div>
+      <div class="logi-legende-item"><div class="logi-shape-diamond"></div><span>Décision / Condition (losange)</span></div>
+      <div class="logi-legende-item"><div class="logi-shape-oval"></div><span>Début / Fin (ovale)</span></div>
+      <div class="logi-legende-item"><div class="logi-shape-arrow"></div><span>Flèche (ordre)</span></div>
+    </div>
+    <svg width="100%" viewBox="0 0 640 520" xmlns="http://www.w3.org/2000/svg" style="display:block;margin-top:1rem;border:1px solid var(--gray-100);border-radius:10px;background:var(--paper);">
+      <defs>
+        <marker id="arr2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#0066FF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+        <marker id="arr-gray" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#9CA3AF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+      </defs>
+      <text x="320" y="28" text-anchor="middle" font-family="Oswald,sans-serif" font-size="15" font-weight="600" fill="#1F2937">Mon logigramme : ___________________________</text>
+      <ellipse cx="320" cy="70" rx="70" ry="22" fill="#E6F0FF" stroke="#0066FF" stroke-width="1.5"/>
+      <text x="320" y="75" text-anchor="middle" font-family="Inter,sans-serif" font-size="13" fill="#0044BB" font-weight="500">DÉBUT</text>
+      <line x1="320" y1="92" x2="320" y2="118" stroke="#0066FF" stroke-width="1.5" marker-end="url(#arr2)"/>
+      <rect x="210" y="120" width="220" height="44" rx="6" fill="#F3F4F6" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="5,3"/>
+      <text x="320" y="137" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#9CA3AF">Action 1</text>
+      <text x="320" y="153" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="#D1D5DB">_______________________</text>
+      <line x1="320" y1="164" x2="320" y2="190" stroke="#9CA3AF" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr-gray)"/>
+      <rect x="210" y="192" width="220" height="44" rx="6" fill="#F3F4F6" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="5,3"/>
+      <text x="320" y="209" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#9CA3AF">Action 2</text>
+      <text x="320" y="225" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="#D1D5DB">_______________________</text>
+      <line x1="320" y1="236" x2="320" y2="262" stroke="#9CA3AF" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr-gray)"/>
+      <polygon points="320,265 420,300 320,335 220,300" fill="#FFF7E6" stroke="#E6A817" stroke-width="1.5" stroke-dasharray="5,3"/>
+      <text x="320" y="296" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#B07A00">Condition ?</text>
+      <text x="320" y="311" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="#D1D5DB">_____________</text>
+      <line x1="320" y1="335" x2="320" y2="361" stroke="#9CA3AF" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr-gray)"/>
+      <text x="330" y="352" font-family="Inter,sans-serif" font-size="10" fill="#9CA3AF">Oui</text>
+      <line x1="420" y1="300" x2="500" y2="300" stroke="#9CA3AF" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr-gray)"/>
+      <text x="432" y="295" font-family="Inter,sans-serif" font-size="10" fill="#9CA3AF">Non</text>
+      <rect x="500" y="278" width="110" height="44" rx="6" fill="#F3F4F6" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="5,3"/>
+      <text x="555" y="295" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#9CA3AF">Autre action</text>
+      <text x="555" y="311" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="#D1D5DB">___________</text>
+      <rect x="210" y="363" width="220" height="44" rx="6" fill="#F3F4F6" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="5,3"/>
+      <text x="320" y="380" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#9CA3AF">Action suivante</text>
+      <text x="320" y="396" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="#D1D5DB">_______________________</text>
+      <line x1="320" y1="407" x2="320" y2="433" stroke="#9CA3AF" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr-gray)"/>
+      <ellipse cx="320" cy="455" rx="70" ry="22" fill="#E6F0FF" stroke="#0066FF" stroke-width="1.5" stroke-dasharray="5,3"/>
+      <text x="320" y="460" text-anchor="middle" font-family="Inter,sans-serif" font-size="13" fill="#9CA3AF">FIN</text>
+      <text x="30" y="300" font-family="Inter,sans-serif" font-size="10" fill="#9CA3AF" text-anchor="middle">↩ boucle :</text>
+      <text x="30" y="313" font-family="Inter,sans-serif" font-size="10" fill="#9CA3AF" text-anchor="middle">revenir à</text>
+      <text x="30" y="326" font-family="Inter,sans-serif" font-size="10" fill="#9CA3AF" text-anchor="middle">une étape</text>
+      <path d="M55 300 Q80 300 80 200 Q80 142 210 142" fill="none" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arr-gray)"/>
+    </svg>
+    <div style="margin-top:0.75rem;font-size:12px;color:var(--gray-600);text-align:center;">Les zones en pointillés sont à compléter. La flèche de retour (boucle) est optionnelle selon le niveau.</div>
+
+    <div class="fmttn-band" style="margin-top:2rem;">
+      <h3>Attendus FMTTN couverts par ces trois fiches</h3>
+      <div class="fmttn-grid">
+        <div class="fmttn-item"><div class="level">P5 · C12</div><div class="skill">Concevoir un logigramme séquentiel de déplacement</div></div>
+        <div class="fmttn-item"><div class="level">P6 · C12-C13</div><div class="skill">Logigramme avec condition (si… alors… sinon)</div></div>
+        <div class="fmttn-item"><div class="level">S1</div><div class="skill">Séquence + condition + boucle · Lien IA</div></div>
+        <div class="fmttn-item"><div class="level">Tous niveaux</div><div class="skill">Pensée algorithmique débranchée — aucun outil numérique requis</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 2 : PIPELINE -->
+<div id="tab-pipeline" class="section">
+  <div class="container">
+    <p class="section-eyebrow">Partie 2</p>
+    <h1 class="section-title">De l'image à l'objet</h1>
+    <p class="section-lead">Le workflow complet expérimenté lors des ateliers du Bocal : du prompt en langage naturel jusqu'à l'objet imprimé en 3D.</p>
+    <div class="pipeline">
+      <div class="pipe-step"><div class="pipe-num">1</div><div class="pipe-content"><h3>Rédiger le prompt</h3><p>Décrire l'objet en langage naturel, le plus précisément possible. Exemple : <em>"Un pion de jeu de plateau, hauteur 3 cm, personnage féminin avec longs cheveux blonds, mini-jupe bleue, bottes rouges, socle en boule de cristal coupée à la base."</em></p><div class="pipe-tools"><span class="tool-tag tag-free">Texte libre</span><span class="tool-tag tag-free">Aucun outil requis</span></div></div></div>
+      <div class="pipe-step"><div class="pipe-num">2</div><div class="pipe-content"><h3>Générer l'image avec l'IA</h3><p>Copier le prompt dans un outil de génération d'image. Les rendus varient selon l'outil — un même prompt donne des résultats différents selon Gemini ou Copilot. Préférer un fond neutre gris pour faciliter l'import 3D.</p><div class="pipe-tools"><span class="tool-tag tag-free">Gemini (compte enseignant)</span><span class="tool-tag tag-free">Copilot (Microsoft 365)</span><span class="tool-tag tag-alt">Leonardo.ai (alt.)</span></div></div></div>
+      <div class="pipe-step"><div class="pipe-num">3</div><div class="pipe-content"><h3>Convertir en fichier 3D</h3><p>Importer l'image dans un outil de modélisation 3D. Attention : depuis mai 2026, l'export STL gratuit est limité sur Tripod. Tinkercad reste l'alternative open source la plus stable pour les formes géométriques.</p><div class="pipe-tools"><span class="tool-tag tag-free">Tinkercad (open source, stable)</span><span class="tool-tag tag-paid">Tripod 3D (gratuit limité, 12€/mois)</span><span class="tool-tag tag-alt">Meshy.ai (alt.)</span></div></div></div>
+      <div class="pipe-step"><div class="pipe-num">4</div><div class="pipe-content"><h3>Préparer avec le slicer</h3><p>Ouvrir le fichier STL dans un logiciel de slicing pour préparer l'impression : vitesse, remplissage, couleurs par zone. Orca Slicer est gratuit et fonctionne avec la plupart des imprimantes.</p><div class="pipe-tools"><span class="tool-tag tag-free">Orca Slicer (gratuit, universel)</span><span class="tool-tag tag-free">Bambu Studio (Bambu Lab)</span><span class="tool-tag tag-alt">Cura (alt.)</span></div></div></div>
+      <div class="pipe-step"><div class="pipe-num">5</div><div class="pipe-content"><h3>Imprimer</h3><p>Envoyer le fichier à l'imprimante. Les imprimantes multicolores permettent jusqu'à 4 couleurs en une impression. Compter entre 30 min et plusieurs heures selon la taille.</p><div class="pipe-tools"><span class="tool-tag tag-free">Snapmaker (multicolore, 870€)</span><span class="tool-tag tag-paid">Bambu Lab (multicolore, 2400€+)</span><span class="tool-tag tag-alt">Creality (monochrome, entrée de gamme)</span></div></div></div>
+    </div>
+    <div class="tools-compare">
+      <h3>Comparatif des outils de modélisation 3D</h3>
+      <div class="tool-row header"><span>Outil</span><span>Statut</span><span>Usage recommandé</span></div>
+      <div class="tool-row"><span><strong>Tinkercad</strong></span><span class="status"><span class="dot-free"></span> Gratuit, stable</span><span>Formes géométriques, débutants, tablette</span></div>
+      <div class="tool-row"><span><strong>Tripod 3D</strong></span><span class="status"><span class="dot-warn"></span> Gratuit limité</span><span>Personnages, figurines (export STL payant)</span></div>
+      <div class="tool-row"><span><strong>Meshy.ai</strong></span><span class="status"><span class="dot-warn"></span> Gratuit limité</span><span>Alternative si Tripod inaccessible</span></div>
+      <div class="tool-row"><span><strong>Fusion 360</strong></span><span class="status"><span class="dot-free"></span> Gratuit enseignants</span><span>Conception avancée, secondaire technique</span></div>
+      <div class="tool-row"><span><strong>Blender</strong></span><span class="status"><span class="dot-free"></span> Open source</span><span>Tout, complexe, nécessite formation</span></div>
+    </div>
+    <div style="background:var(--amber-50);border:1px solid var(--amber-100);border-radius:10px;padding:1rem 1.25rem;font-size:13px;color:var(--amber-600);">
+      <strong style="color:var(--amber-900);">Leçon apprise au Bocal :</strong> Les outils gratuits peuvent changer leurs conditions à tout moment. Toujours prévoir un plan B open source avant chaque atelier.
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 3 : DÉCISION -->
+<div id="tab-decision" class="section">
+  <div class="container">
+    <p class="section-eyebrow">Partie 3</p>
+    <h1 class="section-title">Vaut-il la peine d'imprimer ?</h1>
+    <p class="section-lead">L'impression 3D n'est pas toujours la meilleure solution. Cet arbre de décision aide à choisir — en 4 questions.</p>
+    <div class="tree-node tree-question"><h4>Question 1 — L'objet est-il personnalisable ou introuvable dans le commerce ?</h4><div class="tree-answers"><div class="tree-yes"><div class="ans-label">✓ Oui</div><div class="ans-text">Un pion aux couleurs de la classe, un badge personnalisé → passer à Q2</div></div><div class="tree-no"><div class="ans-label">✗ Non</div><div class="ans-text">L'objet existe en boutique à un prix raisonnable → acheter, ne pas imprimer</div></div></div></div>
+    <div class="tree-node tree-question"><h4>Question 2 — Le processus de fabrication est-il lui-même l'apprentissage visé ?</h4><div class="tree-answers"><div class="tree-yes"><div class="ans-label">✓ Oui</div><div class="ans-text">Les élèves apprennent en concevant, en échouant, en recommençant → passer à Q3</div></div><div class="tree-no"><div class="ans-label">✗ Non</div><div class="ans-text">Seul l'objet final compte → vérifier si une autre solution est plus simple</div></div></div></div>
+    <div class="tree-node tree-question"><h4>Question 3 — Disposez-vous du temps nécessaire ?</h4><div class="tree-answers"><div class="tree-yes"><div class="ans-label">✓ Oui</div><div class="ans-text">Conception + impression = souvent 1h30 minimum. Si intégré dans un projet → continuer</div></div><div class="tree-no"><div class="ans-label">✗ Non</div><div class="ans-text">Pour une séance unique, choisir une activité débranchée ou Scratch</div></div></div></div>
+    <div class="tree-node tree-question"><h4>Question 4 — L'imprimante est-elle accessible et maîtrisée ?</h4><div class="tree-answers"><div class="tree-yes"><div class="ans-label">✓ Oui</div><div class="ans-text">L'école dispose d'une imprimante opérationnelle et d'un·e référent·e → lancer le projet !</div></div><div class="tree-no"><div class="ans-label">✗ Non</div><div class="ans-text">Contacter Technofutur TIC (FWB) pour une formation via l'IFPC</div></div></div></div>
+    <div class="conclusion-green"><h4>✓ Oui à tout — Lancez-vous !</h4><p>L'impression 3D est pertinente. Passez à la section "Calculer le coût" pour valider la faisabilité financière.</p></div>
+    <div class="conclusion-red"><h4>✗ Une réponse non quelque part</h4><p>Ce n'est pas un échec. La pensée algorithmique débranchée (logigramme sur papier, Scratch, Canva) est souvent plus efficace pour les premières séances.</p></div>
+    <div style="margin-top:1.5rem;background:var(--gray-50);border-radius:10px;padding:1rem 1.25rem;font-size:13px;color:var(--gray-600);border:1px solid var(--gray-100);">
+      <strong style="color:var(--ink);">Ressource FWB :</strong> Technofutur TIC propose une formation "Intégrer l'impression 3D dans les apprentissages" disponible via l'IFPC. <a href="https://technofuturtic.be/catalogue/formation/integrer-limpression-3d-dans-les-apprentissages">technofuturtic.be</a>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 4 : COÛT -->
+<div id="tab-cout" class="section">
+  <div class="container">
+    <p class="section-eyebrow">Partie 4</p>
+    <h1 class="section-title">Estimer le coût d'une impression</h1>
+    <p class="section-lead">Deux questions suffisent pour avoir une idée du coût. Les valeurs de référence sont basées sur un filament PLA standard (~22 €/kg) et les tarifs électricité belges 2026.</p>
+    <div class="estimator-block">
+      <div style="margin-bottom:1.5rem;">
+        <div class="estimator-label">Quelle est la taille approximative de l'objet ?</div>
+        <div class="size-grid">
+          <button class="size-btn active" onclick="selectSize(this,'petit')"><span class="size-icon">◾</span><span class="size-name">Petit</span><span class="size-ex">Badge, jeton, pion</span><span class="size-dim">≤ 4 cm</span></button>
+          <button class="size-btn" onclick="selectSize(this,'moyen')"><span class="size-icon">🟦</span><span class="size-name">Moyen</span><span class="size-ex">Figurine, pièce de jeu</span><span class="size-dim">5–8 cm</span></button>
+          <button class="size-btn" onclick="selectSize(this,'grand')"><span class="size-icon">🟩</span><span class="size-name">Grand</span><span class="size-ex">Maquette, objet fonctionnel</span><span class="size-dim">9–15 cm</span></button>
+          <button class="size-btn" onclick="selectSize(this,'tgrand')"><span class="size-icon">🟥</span><span class="size-name">Très grand</span><span class="size-ex">Décor, objet de classe</span><span class="size-dim">&gt; 15 cm</span></button>
+        </div>
+      </div>
+      <div style="margin-bottom:1.5rem;">
+        <div class="estimator-label">Combien de couleurs ?</div>
+        <div class="color-grid">
+          <button class="color-btn active" onclick="selectColor(this,1)"><span class="color-dot" style="background:#374151;margin-bottom:4px;display:block;margin:0 auto 4px;"></span><span class="color-name">1 couleur</span><span class="color-note">Pas de perte</span></button>
+          <button class="color-btn" onclick="selectColor(this,2)"><span style="display:flex;gap:3px;justify-content:center;margin-bottom:4px;"><span class="color-dot" style="background:#0066FF;"></span><span class="color-dot" style="background:#E6A817;"></span></span><span class="color-name">2 couleurs</span><span class="color-note">+15% filament</span></button>
+          <button class="color-btn" onclick="selectColor(this,3)"><span style="display:flex;gap:3px;justify-content:center;margin-bottom:4px;"><span class="color-dot" style="background:#0066FF;"></span><span class="color-dot" style="background:#E6A817;"></span><span class="color-dot" style="background:#CC2200;"></span></span><span class="color-name">3 couleurs</span><span class="color-note">+25% filament</span></button>
+          <button class="color-btn" onclick="selectColor(this,4)"><span style="display:flex;gap:3px;justify-content:center;margin-bottom:4px;"><span class="color-dot" style="background:#0066FF;"></span><span class="color-dot" style="background:#E6A817;"></span><span class="color-dot" style="background:#CC2200;"></span><span class="color-dot" style="background:#374151;"></span></span><span class="color-name">4 couleurs</span><span class="color-note">+30% filament</span></button>
+        </div>
+      </div>
+      <div class="estimator-result">
+        <div class="result-row">
+          <div><div class="result-label">Coût estimé</div><div class="result-value" id="res-cout">—</div></div>
+          <div><div class="result-label">Temps d'impression</div><div class="result-value" id="res-temps">—</div></div>
+          <div><div class="result-label">Filament</div><div class="result-value" id="res-filament">—</div></div>
+        </div>
+        <div class="result-tip" id="res-tip"></div>
+      </div>
+      <details style="margin-top:1rem;">
+        <summary style="font-size:13px;color:var(--lb-blue);cursor:pointer;">Paramètres avancés (modifier les valeurs de référence)</summary>
+        <div style="margin-top:1rem;background:var(--gray-50);border-radius:10px;padding:1rem;border:1px solid var(--gray-100);">
+          <div class="cost-row"><label>Prix bobine 1 kg (€)</label><input type="number" id="adv-bobine" value="22" min="1" step="0.5" oninput="updateEstimate()"></div>
+          <div class="cost-row"><label>Prix électricité (€/kWh)</label><input type="number" id="adv-elec" value="0.29" min="0.01" step="0.01" oninput="updateEstimate()"></div>
+          <div class="cost-row"><label>Puissance imprimante (W)</label><input type="number" id="adv-watts" value="120" min="1" oninput="updateEstimate()"></div>
+          <div class="cost-row"><label>Amortissement par impression (€)</label><input type="number" id="adv-amort" value="1.74" min="0" step="0.1" oninput="updateEstimate()"></div>
+        </div>
+      </details>
+    </div>
+    <div style="margin-top:1.5rem;background:var(--gray-50);border-radius:10px;padding:1rem 1.25rem;font-size:13px;color:var(--gray-600);border:1px solid var(--gray-100);">
+      <strong style="color:var(--ink);">Remarque :</strong> Ces estimations n'incluent pas le temps de préparation (conception, slicing) ni les ratés (~10% de rebut). Pour un projet de classe, compter 30 à 45 min de travail enseignant par type d'objet.
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 5 : BOCAL -->
+<div id="tab-bocal" class="section">
+  <div class="container">
+    <p class="section-eyebrow">Partie 5</p>
+    <h1 class="section-title">Ce qu'on a appris ensemble</h1>
+    <p class="section-lead">Le Bocal est une communauté de pratique à distance réunissant enseignants et formateurs francophones autour du numérique éducatif et de l'IA.</p>
+    <div class="bocal-intro">
+      <div class="bocal-stat"><div class="num">9</div><div class="desc">Participants au webinaire du 12 mai</div></div>
+      <div class="bocal-stat"><div class="num">1 webinaire + 2 ateliers</div><div class="desc">de co-construction</div></div>
+      <div class="bocal-stat"><div class="num">1</div><div class="desc">Livrable co-construit : ce document</div></div>
+    </div>
+
+    <h2 class="section-sub-title">Les 10 idées clés du webinaire</h2>
+    <p class="section-sub-lead">Synthèse des interventions d'Antonin Bareau (classe inversée, lycée professionnel) et Benoît Naveau (robotique, primaire) — webinaire du 12 mai 2026.</p>
+    <div class="ideas-grid">
+      <div class="idea-card"><p>L'autonomie numérique ne s'enseigne pas en un cours — elle se construit progressivement, par l'usage régulier et réflexif des outils.</p></div>
+      <div class="idea-card"><p>La classe inversée déplace l'enseignement hors du temps scolaire, mais exige que les élèves aient accès aux outils à la maison. Le paradoxe GSM/clavier est réel.</p></div>
+      <div class="idea-card"><p>Un projet de robotique ou de fabrication donne du sens aux apprentissages numériques : les élèves voient pourquoi ils apprennent à coder.</p></div>
+      <div class="idea-card"><p>L'IA générative peut être utilisée comme "conseiller technique" par les élèves — à condition que l'enseignant cadre la démarche critique.</p></div>
+      <div class="idea-card"><p>Raffiner un prompt, c'est apprendre à formuler sa pensée avec précision. C'est une compétence langagière autant que numérique.</p></div>
+      <div class="idea-card"><p>La collaboration entre élèves s'enrichit quand chacun apporte une expertise différente : certains conçoivent, d'autres fabriquent, d'autres documentent.</p></div>
+      <div class="idea-card"><p>Le droit à l'erreur est fondamental. Sans filet de sécurité, les élèves n'osent pas tester — et la créativité se ferme.</p></div>
+      <div class="idea-card"><p>Les outils doivent être accessibles sans installation. Les contraintes techniques tuent l'élan pédagogique avant même que l'activité commence.</p></div>
+      <div class="idea-card"><p>Les compétences numériques de base sont un prérequis sous-estimé. Un élève qui ne maîtrise pas le clavier ne peut pas bénéficier pleinement du numérique.</p></div>
+      <div class="idea-card"><p>La question "est-ce que ça vaut la peine d'imprimer ?" est en elle-même un apprentissage : comparer le coût, le temps et la valeur pédagogique.</p></div>
+    </div>
+
+
+    <h2 class="section-sub-title" style="margin-top:2rem;">Ce qu'ils ont dit en fin de cycle</h2>
+
+    <p class="section-sub-lead" style="margin-bottom:1rem;">Réponses au questionnaire de bilan — mai 2026</p>
+
+    <div style="margin-bottom:1.5rem;">
+      <div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.08em;color:var(--lb-blue);margin-bottom:0.75rem;">Qu'est-ce qui vous a le plus marqué ?</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:0.75rem;">
+        <div style="background:var(--lb-blue-50);border-left:3px solid var(--lb-blue);border-radius:0 8px 8px 0;padding:0.75rem 1rem;font-size:13px;font-style:italic;color:var(--lb-title);">"Bienveillance."</div>
+        <div style="background:var(--lb-blue-50);border-left:3px solid var(--lb-blue);border-radius:0 8px 8px 0;padding:0.75rem 1rem;font-size:13px;font-style:italic;color:var(--lb-title);">"Le sentiment d'être la moins experte que les autres participants. Et pourtant, j'ai été écoutée et j'ai pu interagir avec mes 'petits moyens'."</div>
+        <div style="background:var(--lb-blue-50);border-left:3px solid var(--lb-blue);border-radius:0 8px 8px 0;padding:0.75rem 1rem;font-size:13px;font-style:italic;color:var(--lb-title);">"L'esprit de partage et l'engagement de chacun à apprendre et écouter."</div>
+        <div style="background:var(--lb-blue-50);border-left:3px solid var(--lb-blue);border-radius:0 8px 8px 0;padding:0.75rem 1rem;font-size:13px;font-style:italic;color:var(--lb-title);">"La collaboration."</div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:2.5rem;">
+      <div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.08em;color:var(--lb-blue);margin-bottom:0.75rem;">Un mot ou une phrase pour décrire votre expérience</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:0.75rem;">
+        <div style="background:var(--lb-blue-50);border-left:3px solid var(--lb-blue);border-radius:0 8px 8px 0;padding:0.75rem 1rem;font-size:13px;font-style:italic;color:var(--lb-title);">"L'émulation collective dans un bocal de bienveillance."</div>
+        <div style="background:var(--lb-blue-50);border-left:3px solid var(--lb-blue);border-radius:0 8px 8px 0;padding:0.75rem 1rem;font-size:13px;font-style:italic;color:var(--lb-title);">"Positive."</div>
+        <div style="background:var(--lb-blue-50);border-left:3px solid var(--lb-blue);border-radius:0 8px 8px 0;padding:0.75rem 1rem;font-size:13px;font-style:italic;color:var(--lb-title);">"La CoP est une communauté qui peut m'aider à grandir et être autonome."</div>
+        <div style="background:var(--lb-blue-50);border-left:3px solid var(--lb-blue);border-radius:0 8px 8px 0;padding:0.75rem 1rem;font-size:13px;font-style:italic;color:var(--lb-title);">"Une première."</div>
+      </div>
+    </div>
+    <div class="sources">
+      <h2 class="section-sub-title">Sources et références</h2>
+      <div class="source-item">Agenis-Nevers, M. (2026). De l'algorithme à l'objet : quand les élèves fabriquent leur propre matériel pédagogique. <a href="https://www.ludomag.com/2026/06/01/de-lalgorithme-a-lobjet-quand-les-eleves-fabriquent-leur-propre-materiel-pedagogique/" target="_blank">Ludomag</a>, 1er juin 2026.</div>
+      <div class="source-item">Fédération Wallonie-Bruxelles (2023). Référentiel FMTTN — volet numérique. Pacte pour un enseignement d'excellence.</div>
+      <div class="source-item">Housni, S., Temperman, G., et al. (2025). Intégration de la pensée informatique dans la formation des professionnels de l'éducation. UMONS.</div>
+      <div class="source-item">La Salle des Profs (2026). FMTTN — volet formation numérique. <a href="https://www.salle-des-profs.be/fmttn-volet-formation-numerique/" target="_blank">salle-des-profs.be</a></div>
+      <div class="source-item">Technofutur TIC (2026). Intégrer l'impression 3D dans les apprentissages. <a href="https://technofuturtic.be/catalogue/formation/integrer-limpression-3d-dans-les-apprentissages" target="_blank">technofuturtic.be</a></div>
+      <div class="source-item">Wenger, E. (2009). A social theory of learning. In K. Illeris (Ed.), Contemporary theories of learning. Routledge.</div>
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  <div>Produit par la CoP Le Bocal · Premier cycle · Mai–Juin 2026</div>
+  <div><a href="https://lebocal.community">lebocal.community</a> &nbsp;·&nbsp; <img src="data:image/jpeg;base64,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Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9nL2ltZy8iCiAgICAgICAgICAgIHhtbG5zOnhtcE1NPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvbW0vIgogICAgICAgICAgICB4bWxuczpzdFJlZj0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL3NUeXBlL1Jlc291cmNlUmVmIyIKICAgICAgICAgICAgeG1sbnM6c3RFdnQ9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZUV2ZW50IyIKICAgICAgICAgICAgeG1sbnM6aWxsdXN0cmF0b3I9Imh0dHA6Ly9ucy5hZG9iZS5jb20vaWxsdXN0cmF0b3IvMS4wLyIKICAgICAgICAgICAgeG1sbnM6cGRmPSJodHRwOi8vbnMuYWRvYmUuY29tL3BkZi8xLjMvIj4KICAgICAgICAgPGRjOmZvcm1hdD5KUEVHIGZpbGUgZm9ybWF0PC9kYzpmb3JtYXQ+CiAgICAgICAgIDxkYzp0aXRsZT4KICAgICAgICAgICAgPHJkZjpBbHQ+CiAgICAgICAgICAgICAgIDxyZGY6bGkgeG1sOmxhbmc9IngtZGVmYXVsdCI+TGVCb2NhbF9SVkJfMzIwPC9yZGY6bGk+CiAgICAgICAgICAgIDwvcmRmOkFsdD4KICAgICAgICAgPC9kYzp0aXRsZT4KICAgICAgICAgPHhtcDpNZXRhZGF0YURhdGU+MjAyNi0wMi0xMlQxMDozNjo1MCswMTowMDwveG1wOk1ldGFkYXRhRGF0ZT4KICAgICAgICAgPHhtcDpNb2RpZnlEYXRlPjIwMjYtMDItMTJUMDk6MzY6NTBaPC94bXA6TW9kaWZ5RGF0ZT4KICAgICAgICAgPHhtcDpDcmVhdGVEYXRlPjIwMjYtMDItMTJUMTA6MzY6NTArMDE6MDA8L3htcDpDcmVhdGVEYXRlPgogICAgICAgICA8eG1wOkNyZWF0b3JUb29sPkFkb2JlIElsbHVzdHJhdG9yIDI5LjUgKE1hY2ludG9zaCk8L3htcDpDcmVhdG9yVG9vbD4KICAgICAgICAgPHhtcDpUaHVtYm5haWxzPgogICAgICAgICAgICA8cmRmOkFsdD4KICAgICAgICAgICAgICAgPHJkZjpsaSByZGY6cGFyc2VUeXBlPSJSZXNvdXJjZSI+CiAgICAgICAgICAgICAgICAgIDx4bXBHSW1nOndpZHRoPjIxNjwveG1wR0ltZzp3aWR0aD4KICAgICAgICAgICAgICAgICAgPHhtcEdJbWc6aGVpZ2h0PjI1NjwveG1wR0ltZzpoZWlnaHQ+CiAgICAgICAgICAgICAgICAgIDx4bXBHSW1nOmZvcm1hdD5KUEVHPC94bXBHSW1nOmZvcm1hdD4KICAgICAgICAgICAgICAgICAgPHhtcEdJbWc6aW1hZ2U+LzlqLzRBQVFTa1pKUmdBQkFnRUFBQUFBQUFELzdRQXNVR2h2ZEc5emFHOXdJRE11TUFBNFFrbE5BKzBBQUFBQUFCQUFBQUFBQUFFQSYjeEE7QVFBQUFBQUFBUUFCLys0QURrRmtiMkpsQUdUQUFBQUFBZi9iQUlRQUJnUUVCQVVFQmdVRkJna0dCUVlKQ3dnR0JnZ0xEQW9LQ3dvSyYjeEE7REJBTURBd01EQXdRREE0UEVBOE9EQk1URkJRVEV4d2JHeHNjSHg4Zkh4OGZIeDhmSHdFSEJ3Y05EQTBZRUJBWUdoVVJGUm9mSHg4ZiYjeEE7SHg4Zkh4OGZIeDhmSHg4Zkh4OGZIeDhmSHg4Zkh4OGZIeDhmSHg4Zkh4OGZIeDhmSHg4Zkh4OGZIeDhmLzhBQUVRZ0JBQURZQXdFUiYjeEE7QUFJUkFRTVJBZi9FQWFJQUFBQUhBUUVCQVFFQUFBQUFBQUFBQUFRRkF3SUdBUUFIQ0FrS0N3RUFBZ0lEQVFFQkFRRUFBQUFBQUFBQSYjeEE7QVFBQ0F3UUZCZ2NJQ1FvTEVBQUNBUU1EQWdRQ0JnY0RCQUlHQW5NQkFnTVJCQUFGSVJJeFFWRUdFMkVpY1lFVU1wR2hCeFd4UWlQQiYjeEE7VXRIaE14Wmk4Q1J5Z3ZFbFF6UlRrcUt5WTNQQ05VUW5rNk96TmhkVVpIVEQwdUlJSm9NSkNoZ1poSlJGUnFTMFZ0TlZLQnJ5NC9QRSYjeEE7MU9UMFpYV0ZsYVcxeGRYbDlXWjJocGFtdHNiVzV2WTNSMWRuZDRlWHA3ZkgxK2YzT0VoWWFIaUltS2k0eU5qbytDazVTVmxwZVltWiYjeEE7cWJuSjJlbjVLanBLV21wNmlwcXF1c3JhNnZvUkFBSUNBUUlEQlFVRUJRWUVDQU1EYlFFQUFoRURCQ0VTTVVFRlVSTmhJZ1p4Z1pFeSYjeEE7b2JId0ZNSFI0U05DRlZKaWN2RXpKRFJEZ2hhU1V5V2lZN0xDQjNQU05lSkVneGRVa3dnSkNoZ1pKalpGR2lka2RGVTM4cU96d3lncCYjeEE7MCtQemhKU2t0TVRVNVBSbGRZV1ZwYlhGMWVYMVJsWm1kb2FXcHJiRzF1YjJSMWRuZDRlWHA3ZkgxK2YzT0VoWWFIaUltS2k0eU5qbyYjeEE7K0RsSldXbDVpWm1wdWNuWjZma3FPa3BhYW5xS21xcTZ5dHJxK3YvYUFBd0RBUUFDRVFNUkFEOEE5VTRxN0ZYWXE3RlhZcTdGWFlxNyYjeEE7RlVuOHplY3ZLdmxleit1ZVlkVnR0TWdOZUJ1SkZSbnAxRWFmYmMreWduRlhpUG16L25ORHlKcDdQRDVjMDI3MXlWZnN6eVVzN2MrNCYjeEE7TGg1dnZqR0t2UG0vNXlQL0FPY2hmT2tqUmVUdEVGdkVTUXI2ZFl5WGpML3J5ekNhSWZQaU1WV255RC96bUY1bEhxWDEvcU5uQys5SiYjeEE7ZFNqdEVQN1c4TnZJRHNSM1RGVktUL25FVDg2OVJRdGY2M3BqTVNLcGMzdDNJVFFiSGEza0g0NHFvLzhBUWxYNXAvOEFWMTBQL3BJdiYjeEE7UCt5VEZVQlAvd0E0bWZuZHBsWkxENm5jU2Y4QUxuZStteG9kdDVSQjgrdUtwZGNlWHY4QW5LVHllQ3dYekhid3gxTGZWTGlhN2dGTiYjeEE7NnNMZDVvNmI5VGlxdG8zL0FEbFYrZGVoVCtocUY1RHFmcEdqMjJwV3FLNDhRV2hGdkpYL0FGamlyMVR5cC96bTFvczdKRDVxMENheSYjeEE7SjJhNzArUVhDVjhURko2VEtQa3pIRlh1SGszODB2eS84NW9ENWMxdTN2WnFWYTA1R0s1QUFxU1lKUWt0QjQ4YVlxeXJGWFlxN0ZYWSYjeEE7cTdGWFlxN0ZYWXE3RlhZcTdGWFlxN0ZYWXF4cnp4K1kzazN5UHB2MS93QXlhbEhacXdQb1cvMjdpWWp0RkN0WGIzTktEdVJpcjVoOCYjeEE7NmY4QU9WLzVnZWJOUS9RZjVkYVpMcDZYREdPQ1NPUDYxcVUxZjVFVU9rVzNaUXhIODJLcnZLZi9BRGliK1lYbXU4L1RYNWg2dytudCYjeEE7Y2ZITEc4aHZkUWtydlIzWmpISDE3c3hIZGNWZThlVC9BUG5IYjhwUEt5bzlyb2Nlb1hpRGU5MU9sM0lTUDJ1TGowVlB1aURGWG84YyYjeEE7Y2NVYXh4cUVqUVVWRkFBQUhZQVlxdXhWMkt1eFYyS3V4Vkp2TVhrenlsNWxnTU92NlBaNm1sT0ttNWhTUjFIK1E1SE5EN3FSaXJ4TCYjeEE7enY4QTg0YWVTTlRXUzQ4cTNzK2czUjNXMmxKdXJRbndvNTlaYStQTnZsaXI1MDgrL2tsK1puNWV6ZlhOUnNYYXhnZmxGclZnelN3QSYjeEE7cWZoWXVvVjRqWHB6VmZiRldWZmx6L3psZCtZZmxkb3JUVzVQOFNhUXRGTWQyMUx0Rkg4bHpRc3gvd0NNZ2I2TVZmV1A1Y2ZuRjVFLyYjeEE7TUcxNTZEZkFYeUx5dU5LdWFSWGNmaldPcERxUDVrTEw3NHF6YkZYWXE3RlhZcTdGWFlxN0ZYWXE3RlhZcTRrQVZPd0hVNHErZHZ6cCYjeEE7L3dDY3J0TDh2UGNhRDVJTVdwNjBsWTdqVlQ4ZHBidDBJanB0Tkl2L0FBQVA4MjY0cThsL0x6OGpmekkvTjdWRDVwODAzMDlycE4wMyYjeEE7T1RWN3lyejNLMSt6YXh0VDRCMERiSXY3TmFVeFY5Y2VRZnl1OGsrUTdENnA1YzA1TGVSaFM0dnBQM2wxTi94a21QeEVkK0lvbzdBWSYjeEE7cXl2RlhZcTdGWFlxN0ZYWXE3RlhZcTdGWFlxMDZJNk1qcUdSZ1F5a1ZCQjJJSU9LdkNmelcvNXhROG9lWjFtMUx5dHc4dmE0MVhNUyYjeEE7S2ZxTTduZjQ0bC91aWY1bzl2OEFKT0t2a2p6SDVYODcvbDM1bVcyMU9HNDBmV0xSdlZ0THFKaXZJQTBFc0V5R2pMN3FmWTc3WXEraiYjeEE7ZnlXLzV5Mmp1bmcwSDh4SFNHWnFSMjNtSlFFalluWUM3UUNpZjhaRitIK1lEZHNWZlQ4Y2tjc2F5UnNIamNCa2RTQ3JLUlVFRWRRYyYjeEE7VlhZcTdGWFlxN0ZYWXE3RlhZcXAzRnhiMjBFbHhjeXBEYndxWG1ta1lJaUlvcXpNeG9BQU9wT0t2amI4L3dEL0FKeVh2dk0wMXo1VyYjeEE7OG1UUGJlWHFtRzgxR09xelgzWXFuUmtoUDN1T3UzdzRxeVQ4Z3Y4QW5GcU5vcmJ6VCtZRnR5TGhadE84dnlEWURxc2w0cEhmcUl2KyYjeEE7RC9seFY5VUlpSWlvaWhVVUFLb0ZBQU5nQUJpcmVLdXhWMkt1eFYyS3V4VjJLdXhWMkt1eFYyS3V4VjJLc2Y4QU8va1B5djUyMFNUUiYjeEE7dk1ObXQxYXRVeFNmWm1oZWxCSkRKMVJoK1BRMUdLdmhiODV2eU44eC9scnFmT1RsZitYYmx5TERWa1VoYW1wRU00R3lTMEh5YnFPNCYjeEE7Q3JLUHlDLzV5UDFMeVRQQjVmOEFNY2tsNzVTa1lKSElhdkxZVi9haTd0RlUvRW5icXUrekt2dHF4dnJLL3NvTDZ4blM1czdsRmx0NyYjeEE7aUpnNk9qaXFzckRZZ2pGVmZGWFlxN0ZYWXE3RldtWlZVc3hDcW9xekhZQUR1Y1ZmRnY4QXprcC96a0ZMNXJ1N2p5aDVabnA1WHRuQyYjeEE7M3QzR2Y5N3BZMnJzZjk4SXcrSCtZamwwcGlyT2YrY1l2K2NlMTA2SzE4OWViYllIVUpGRXVoNlpNdjhBY0tkMXVaVlArN0NONDFQMiYjeEE7UjhYMnFjVlgwMWlyc1ZkaXJzVmRpcnNWZGlyc1ZkaXJzVmRpcnNWZGlyc1ZkaXJzVlFHdTZGcEd2NlJkYVByRnFsN3B0NmhqdUxlUSYjeEE7VlZsUDRnZzdnamNIY2I0cStEUHoxL0pEVlB5MTF0WklDOTU1WXYzYjlHMzVIeElldjFlY2dVRWlqb2VqamNkd0ZXU2Y4NDIvbjNMNSYjeEE7TDFLUHl6NWhuTCtVNzZTa1V6a242aE01KzJLOUlYWS92QjIrMFAydVNyN2RSMGRGZEdESXdCVmdhZ2c3Z2dqRlc4VmRpcnNWZGlyNSYjeEE7bi81eXgvT3lUUzdkL3dBdi9MODVTL3Vvd2RldW96UXhRU0NxMnlrZnRTcWF2NEpRZnRHaXJBLytjV2Z5U1R6WHEzK0w5Zmc1ZVh0SyYjeEE7bEFzcmVSZmh1N3BkOXdmdFJSZnRlTFVIWmhpcjdVeFYyS3V4VjJLdXhWMkt1eFYyS3V4VjJLdXhWMkt1eFYyS3V4VjJLdXhWMktwUiYjeEE7NXM4cTZKNXI4djNtZzYzYmk0MCs5UXBJdTNKVCt6SkdTRHhkRDhTbnNjVmZuZjhBbWgrWE9zL2w5NXV1dkwrcEF1aS92YkM4QW9seCYjeEE7Yk1Ud2xYN3FNT3pBakZYMGgvemlWK2RENm5hTCtYMnV6OHI2eWpMYURjT2Q1YmVNVmEyTmVyUkx1bitSVWZzN3F2cGZGWFlxN0ZXRyYjeEE7L201K1l0bCtYL2thL3dETUUvRjdwUjZHbVd6Zjd1dTVBZlNYL1ZGQzdmNUlQZkZYd1g1UDh0K1l2ek0vTUtEVHZXZWZVdFp1V24xQyYjeEE7K2Y0aWlFbVNlZC85VmFrRHhvTVZmb3I1Yzh2YVY1ZDBLeDBQU1lSQnArbndyQmJ4N1Y0cjFaaUtWWmpWbVBjbXVLcGppcnNWZGlycyYjeEE7VmRpcnNWZGlyR3ZQMzVpZVdmSXVqcnFtdlRPc2NqK25iVzhLaDVwbnBVckdwS2pZZFNTQVBIRldHZVIvK2NsUElQbXZXb2RHRWQxcCYjeEE7ZDdkTUk3UTNpeGlLV1EvWmpEbzcwZGpzQXdGVHNOOXNWZXNZcTdGWFlxN0ZYWXE3RlhZcTdGWFlxN0ZYbC84QXprSCtVMFg1aGVTWiYjeEE7a3RJbFBtUFN3MXpvOHV3THNCV1MzSjhKbEZCNE54UFN1S3ZnblM5VDFUUTlZdHRTc1pIdE5TMDZkWm9KS1VhT1dKcWlvUGdSdURpciYjeEE7OUcveXU4L1dIbnp5VHAzbU8xNHBKY0o2ZDlicWEramRSN1N4NzcwQjNXdlZTRDN4VmxlS3V4VjhPZjhBT1dQNWtONW0vTUErWDdPVSYjeEE7blNQTFhLMm9EOEwzalUrc1Avc0NCR1A5VTA2NHE5Yy81dzcvQUM0VFNQS2R4NXl2WWFhanJwTVZpV0h4Sll4TlNvcnVQV2xGVDRoViYjeEE7T0t2b2ZGWFlxN0ZYWXE3RlhZcTdGWFlxK2F2K2N4ZEgxV1FlWGRYUlhrMHVBWEZ0S1FDVmlta0tNcFk5dlVWYUQvVndLOEM4azZOcSYjeEE7MnMrYmRKMDdTWTNrdjVycUwwakdEVk9MaGpJU1BzcWdISW5zQmlyOUVzS3V4VjJLdXhWMkt1eFYyS3V4VjJLdXhWMkt2aC8vQUp5MCYjeEE7L0xVZVdmUFk4eFdFUERTUE1uS1pnb29zZDZ0UFhYYnA2bFJKN2t0NFlxamYrY1AvQU14bTBUem5ONVN2SmVPbStZUlcxREdpcGZSSyYjeEE7U3RLN0QxWXdVOXlGR0t2dFBGV0xmbWo1eVR5YjVBMXZ6R1NCTlpXemZWQWR3MXpLUkhBQ080OVYxcjdZcS9PL3l0b09vK2J2T0duYSYjeEE7TkU3UGU2eGRwRTg3ZkVRWlhySksxZXZFVmM0cS9TL1NkTHN0SjB1ejB1d2pFTmxZd3gyMXRFT2l4eEtFUWZjTVZSV0t1eFYyS3FWMSYjeEE7ZFcxcGJTM1YxS2tGdEFqU1R6eU1FUkVRVlptWTBBQUFxU2NWZUs2My93QTVnL2xIcHVvUGFRRFV0VlNNbFRkMlZ2SDZKSTJQRXp5dyYjeEE7TVI3aGFZcTlDL0wzODFQSlBuK3lrdWZMZCtKNUlLZldyS1ZURmNROHVuT051eDdNdFY5OFZWL3pMODFYUGxUeUpyUG1DMWlXYTZzWSYjeEE7T1VFY2xlSHFPNnhxV3B1UXBlcEhmRlhqdmw3US93RG5KdnpabzFucjBmbkt4c3JIVllSY1F3MENTSkc0cWc0eDJ2RmR2QjYvVGdWRiYjeEE7WEg1Vi93RE9SMGx2TEMvbm15dTQ1VjRQYjNRZVNKMUpGUXl5VzBpLzhMaFZMTkwvQUNaLzV5RTBMMUpkRTF6UU5Qa2NVZjZqQkZicyYjeEE7NDhDVXNJNi9TY0NvNWZKbi9PV1JZQSthN0pRVFFzWGpvUGZhMU9GVTYvS2J6eCtZOXY4QW1IcXY1ZWVlNTRkU3Y3UzJGNWJhakFFVSYjeEE7QlJ3K0g0STR1YXVzb1lGbERBOWV1eXIybkZWa2swTVhIMUhWT1o0cnlJRlNld3IzeFZmaXJzVmRpcnc3L25KdjgxUE1IbEt6MHpSZiYjeEE7TDg1czczVkZsbHViMUFQVWpoaktxcXhrMW9YWmpWdW9wdDF4VjRQNUsvUGI4eFBMdXZXOTlkYTFlNnZZY3dMMnd2cDVMbEpJaWZpQyYjeEE7ZXF6ZW05UHNzdE4rdFJVWUZmYzhNcVN4SktocWtpaGxQVFpoVVlWWFlxODYvUDhBOGlMNXovSy9WckNPUDFOUnNrL1NHbWJWYjE3WSYjeEE7RnVLKzhrZk9QL1pZcS9QclM5U3ZOTDFLMDFLeGtNVjVaVFIzRnRLT3F5Uk1IUnZvWVlxL1RMeWI1bHRQTS9sVFNmTU5wdERxZHJGYyYjeEE7aE92Qm5VRjR6N285VlB5eFY4OS84NXRlYXpEcEhsL3lyQys5M05KcU4ybzJQQ0FlbENEN00wam41cmlyQi84QW5EUHlxTlMvTVMrMSYjeEE7K1ZPVU9nMlo5TnFWNDNGNVdKUCtTU3k0cSsxTVZkaXJzVmRpcndYL0FKeksxeS8wL3dETEMwc2JXUXh4YXJxTWNGNFFTT1VNY2NrMyYjeEE7RGJzWFJUOUdLdmlYRlhvWDVBK1pkUTBEODNQTFV0cEl5cmYzc09tM1VZK3k4TjdJc0xCaDM0bHc0OXdNVmZhSC9PUUgva252TXY4QSYjeEE7eGhpLzZpSThWVHo4c0FCK1d2bE1BVS8zRGFlZHZlMWpPS3NteFYyS3V4VjRkcFAvQUsxbnJYL2JHVC9rM2I0cTlUOCsrWTVQTFhreiYjeEE7V2RlaWpFczJuMnNrMEViZlpNZ0ZJdzNUNGVaRmZiRlh3QnIzbUhXOWYxS1hVdFp2WmI2OW1ZczgwekZpS212RlIwVlIyVmRoMndLOSYjeEE7L3dEK2NVZnpHMXVmV0xueWJxTnk5MXA1dG11ZE45Vmk3UXZFeWhva0ozNE1qY3VQUUZkdXB4VjlQWVZRN2FqcDZNVWU2aFZsSkRLWiYjeEE7RkJCSFVFVnhWNU4vemtCK1drUG4vUjdLNTBlK3RVMXpTaS9vUnl5b2lUUXkwNXhscS9Dd0tBcVR0MUhlb1ZlS2VUUCtjYlBOdC9yTSYjeEE7STh6U1d1ajZSRzRhNmY2M2J6VFNJTnlzU3dQSUFXNlZZaW5YZnBnVjlneDZocFVhTEdsMUFxSUFxcUpFMkEyQTY0VlJFTThFNmw0WiYjeEE7RmxVR2haR0RDdmhVWXF2eFYrY0g1eitVUjVUL0FEUDh3YUxISDZkckhkTlBaS09ndDdrQ2FKUi9xcElGK2pGWDFCL3pobjVwT3BmbCYjeEE7emU2RksvS2JRcnhoRXRmczI5MkRLbi9KVVM0cThLLzV5dDh3TnEzNXphbkFINXc2UkJiMkVKSFFjWS9Xa0gwU3pPTVZlNi84NFlhQyYjeEE7TFA4QUxiVU5XWmFTNnJxTDhXOFliYU5ZMCs2UXlZcTkvd0FWZGlyc1ZkaXJBL3p0L0xOZnpFOGhYV2hSU0xCcU1VaVhlbHp5VjRMYyYjeEE7eEFnQjZiOFhSMlFudFd1OUtZcStETlovTFg4d05GMUdUVHRSOHZYOE4xRzNIaUxlU1JXOTBkQXlPUGRTUmlyMi93RDV4cC81eCs4MCYjeEE7L3dDSzdMemo1cHNKZEwwM1MyOWV3dExsVEZjVDNBQkViR0pxT2lSazg2dFNwcFNvcmlyMzcvbklEL3lUM21YL0FJd3hmOVJFZUtwdiYjeEE7K1UwelRmbGg1VWRnQVJwVm1tM2drS29Qd1hGV1Y0cTdGWFlxOFowdlNkVlgvbktMV05UYXpuWFRuMGhJMHZURTRnWi9UdHh4RWxPQiYjeEE7T3gycmlyMUh6VjVldGZNZmx2VXRDdW1LUWFqYnlXN1NMMVF1dEZjZTZ0UTRxK0lmTWY1SWZtZm9lcHkyTCtYN3kvUkdJaXU3Q0NTNiYjeEE7aGtYc3dhSlc0MThHb2NDdmN2OEFuR3I4bXZNUGxtL3V2TlBtUzMrcFhVMEJ0ZFBzSElNcXBJeXZKTElBVHdQd0JWVTc5YWdiWVZlbyYjeEE7Zm5EZjNsaCtXSG1XN3M1V2d1WTdLUVJ5b2FNdk9pa3FleG8zWEZYbDM1Y2Y4NDRmbHpyWGtYUk5YMVJidWZVTlF0VXVyaVJKekd2SyYjeEE7WDQ2QlFQMlFhWXF5VC9vVmo4cHYrV2U5L3dDa3B2NllxNy9vVmo4cHYrV2U5LzZTbS9waXJ2OEFvVmo4cHY4QWxudmYra3B2NllxeCYjeEE7ajhzZkw5dDVMLzV5RzF6eW5vazg2NkcybUxjTmF5dnpCazR3dXBPd3FWTWpjVDFvYVlGZlF1Rlh4My96bXo1ZUZ0NXYwRFgwV2k2biYjeEE7WlNXc2hIZVN6a0RWUHZ3dUZIMFlxZy8rY0xOY2ExL01UVk5KWWtSYW5wek9CNHkyMHFNdGY5aEpKaXJ4L3dETW5VMjFUOHd2TTJvRSYjeEE7MUYxcWw1SW5zaG5mZ1BvV2d4VjkwLzhBT09tbUxwMzVMZVZvUXZFeTJ6M0xiYmszTXp6VlAwU1lxOUh4VjJLdmkzWDlRL012ODVmeiYjeEE7cTFmeTVwZXNuU0xmU251NHJLRDFwWVlJNExPWDBpeEVJSmFTUnFFa2oyNkFZcW52L1FxUDUwZjlUdEIvMGxYMy9OR0t1LzZGUi9PaiYjeEE7L3Fkb1Ara3ErLzVveFYzL0FFS2orZEgvQUZPMEgvU1ZmZjhBTkdLdS93Q2hVZnpvL3dDcDJnLzZTcjcvQUpveFZkZi9BSkpmbUQ1RiYjeEE7OGxlY05YOHgrWW90WHNaOUtGcEhiSk5jeWxaWHZyV1FQU1pWWFpZbUZldStLcFA1dS9McnovUCtYZWwvbVBvbXUvby9TOU4wV3k5UyYjeEE7eWl1TGlHNDVXdjdwcEU5TUJLL3RENHNWZTlmODQzK2U5YTg2ZmxoYTZqcmNucjZsWjNFdGpOZEhacGhDRlpKSHArMXhrQVk5eUs5OCYjeEE7VmVvNHErVVBOK3EvbUwrYVg1d2FyNVEwWFZXMHV3MGlhNGhoZ00wa01Lclp2Nk1reitrT1VqdSs0cURRR21CVVBiL2s1NW1uODR6KyYjeEE7VGw4L3QvaUMydHhkVFcxTDdnSXlFTlJKWGdkcEIzeFZPSC81eGsvTm9PUW5uR0prcjhKTnhlQWtlNENuOWVLdGY5Q3kvbTcvQU5UaCYjeEE7RC8wazN2OEF6UmlxcE4vempIK2FnNCtqNXpqZitibk5lSlQ1VTUxeFZEM241Ti9tRDVROG4rYTlYOHhhOURxRm9kSm10MHRZcDdtYiYjeEE7NG5raUt1ZldTTlJRS2NWU3J6WCtYUG5hVDh2dEU4LzZYcTR0OVAwelE3QWkwam1taW5Vb2lxN3g4UUVIMnEvYXJpcjJ6L25IZnp0cSYjeEE7L203OHVvN3ZWNWpjNmhZWFV0aExkTjl1VVJva2lNK3dxM0NVQW52U3AzcmhWNmJpcnNWZURXYk1QK2N1YjRBa0J0TVVNQjNIMVdJNyYjeEE7L2RnVjd6aFY4OWY4NXJhV2svNWQ2UHFRRlpiTFZGaXI0UjNFRXZML0FJYUpNVmZQMy9PTk9vR3gvTzN5ekpXaXpTejI3RHg5ZTJsaiYjeEE7SFQvS1lIRlhtczh6enp5VFBUbkt6TzFPbFdOVGlyOUp2eW5nOUQ4cnZKOFhEMDJYUmRQNXBTbEdOckdXcjc4c1ZaVmlyc1ZmSlgvTyYjeEE7TnFxZitja3ZQSklCS3c2cVZKN0g5SndDbytnNHErdGNWZGlyc1ZkaXJBZno1dDU3ajhvdk1zY0ViU3lDMlNRcWdKUENPWkhkcURzcSYjeEE7cVNmYkZYa1ovTXJ5WnEvL0FEamRxSGxheHVpdXY2Zm9SRjFZR0dWZUlna1JIZjFPUHBFTVNHMmV1L2pYRlhmODQwL21SNUw4bGZsSCYjeEE7RC9pYlVmcUgxL1ZiMzZwKzVubTUrakZiZXAvY1J5VXA2aTljVmVuL0FQUXlQNUwvQVBVeGY5T2Q5LzFReFY1QjVFODFmbHA1ZC9OeiYjeEE7WGZPdDE1d3RackRWWkw1NGJhS3oxUDFsRjNjQ1pPWEsxQy9DQlEwT0JXVS9senJkbDV2L0FPY2pOZDgwYUFKYnJRRTB4YmMzNWllTiYjeEE7UFU0d3FCOFlWaHlNYlVCQU94MndxK2djVmRpcnNWWVArZUgvQUpLYnpQOEE4d1RmOFNYRldJYWgvd0NzcUovMndJUCtJcGlxRi81eCYjeEE7Qy84QUphNmwvd0J0bWY4QTZoYmJGWHVPS3V4VjRMYWYrdGRYdi9iTUgvVUxIZ1Y3MWhWNDcvemxuYmlYOGxOVWtJSityM05uSUNPZyYjeEE7cmNMSHY3ZkhpcjVCL0plZFlQemE4bnV6RkFkV3RJNml2V1NaVUEyOGVWTVZZWGlyOUxQeXNtZWY4c2ZLTXptcnlhTHB6T1IvTWJXTSYjeEE7bnA3NHF5akZYWXErUy84QW5Hei9BTmFTODlmOFlOVi83cWtHS3ZyVEZYWXE3RlhZcTRnRUVFVkIySU9LdktQenE4bitVdEovS2Z6ZiYjeEE7ZmFYb2xoWVhzbW55TEpkV3RyRERLeXRJak1DOGFxeEJJQk8rS3NPLzV4UThzZVd0Yy9LUC9jM3BObHFuMWZWYnY2djlkdDRyajArYyYjeEE7VUhQaDZxdHg1Y1JXbldtS3ZZLytWWS9sci8xS2VqZjl3KzEvNnA0cThML0xlVFNkYy9QRHpKNVUxSHk5b2N1aWFkTHFLMmtDNlRZSSYjeEE7eWkydWhGRlYxaERHaWVKd0srak5JMFBSTkd0amE2UHA5dHB0cXpHUm9MU0dPQ011UUFXS3hoUlVnRGZDcU54VjJLdXhWZy81NGY4QSYjeEE7a3B2TS93RHpCTi94SmNWWWhxSC9BS3lvbi9iQWcvNGltS29YL25FTC93QWxycVgvQUcyWi93RHFGdHNWZTQ0cTdGWGh1bElqZjg1YSYjeEE7YXdXQUpUUjBLazlqNlZ1S2o2RGlyM0xGWGsvL0FEbFBNaWZrWjVpVmpReXRaSW51UmZRTitwVGlyNDEvSnFGSnZ6WjhubzlhRFdMSiYjeEE7eFR4U2RYSDRyaXJHOWRzVHArdDZoWUZlQnRMbWFBcHVLZW5JVXB2djI3NHEvUVQvQUp4ODFCYi9BUEpqeXBPcHFFcy9xKzNqYlNQQSYjeEE7ZW4vR1BGWG9XS3V4VjhsLzg0MmYrdEplZXY4QWpCcXYvZFVneFY5YVlxN0ZYWXE3RlhZcXdEOC92L0pOZWJQK1lGditKTGlyQ2Y4QSYjeEE7bkRiL0FNbEhOLzIxYm4vazFEaXIzWEZYeS84QWszLzYwMzV5L3dDTTJzZjlSd3dLK29NS3V4VjJLdXhWam41amVYYnp6SjVGMXZRNyYjeEE7SmxTOHY3VjRyY3liTDZuMmxESHNDUlN2YkZYaE4xZS9uRFlmbE5xdmxmek41WmgwL1FOTzBkNEUxSlhWcFMwSlVSaHVNMGlubDNvdSYjeEE7QlVQK1EvbUR6L28zNVh5TjVQOEFMeWEvSk5yZDJMeEhsRVhwS3RwYWNDS3N0ZVZUOTJLczYvNVdML3prTi81Ym1IL3BMVC9xcGhWMyYjeEE7L0t4ZitjaHYvTGN3L3dEU1duL1ZURlVQK1dmbFA4eU5TL052VS96QTgzYVhIb0tTV1l0SXJPTjFrOVE4VVJlanlHaXJIVmlhYjBvTyYjeEE7dUt2YjhWZUpmODVnWDR0dnlkbGdKcDllMUMxdHdOdCtKYWVtL3dEeGg3WXErWXYrY2NMQnIzODdQSzBRSDkzY1N6aytBZ3Q1SmY4QSYjeEE7alRGVXYvUExSenBINXZlYkxNcndEYWpMY290S0FKZGtYSzBIaHhsRk1WZlVuL09IR3UvWC93QXFaZE9acXlhUnFFOEtwM0VVd1dkVCYjeEE7OUx5UDkyS3Zkc1ZkaXI1TC93Q2NiUDhBMXBMejEveGcxWC91cVFZcStnZnphL01lMy9ML0FNb3ZyajJ4dkxpV1pMU3l0dVhCV21rViYjeEE7bkhOcUdpcWtiTWR0NlU3NHE4NC9KMy9uSksrODRlYW8vTG12NmRiMmx4ZWlRMkZ6YWN3bk9OVEo2Y2l5TS9WRk5HRGRlMitLcEQ1cCYjeEE7L3dDY3VOU3N2Tk56YWFMbzl0YzZKYVRORDZ0dzBnbm5FYmNTNk1wNHhocWZEVlcyNitHQlhwSG5yODg5TTh2Zmx2cFhtNnl0R3VwOSYjeEE7ZFZCcHRuSWVJVjJRdS9yTU8wZEtIajFQVGJjRldQOEE1Sy84NUVYZm5qekMzbDdXOU9oczcrV041cks0dEMvcHY2WTVOR3lTRjJEYyYjeEE7YWtOeTdkTVZaaitmMy9rbXZObi9BREF0L3dBU1hGV0Uvd0RPRzMva281disycmMvOG1vY1ZlNjRxK1gvQU1tLy9XbS9PWC9HYldQKyYjeEE7bzRZRmZVR0ZYWXE3RlhZcTdGV0QvbmgvNUtielAvekJOL3hKY1ZZTi93QTRoZjhBa3RkUy93QzJ6UDhBOVF0dGlyM0hGWFlxN0ZYWSYjeEE7cStaUCtjMzlhV1BRL0xHaUExYTV1Ymk5ZGE5QmJ4ckVwSTkvckRVK1dLc0Ivd0NjTk5ETjcrYUYzcWJEOTNwV25TdXJVcis5bmRJbCYjeEE7SDBvejRxcmY4NW5lVzJzUHpGMC9YRVNrR3RXS2huOFo3UnZUZjdvbWl4VkdmODRWZWFCWmVjOVo4dVN2U1BWN1JiaUVIdk5ac2ZoSCYjeEE7emptY24vVnhWOWo0cTdGWHlYL3pqWi82MGw1Ni93Q01HcS85MVNERlgwUitaLzVkNmQ1KzhxeWFGZXpOYXNKVnVMTzdRY3pGUEdHViYjeEE7V0tFcnlIRjJVaXZRNHE4Ly9LVC9BSnh1dC9KWG1OZk1PcDZvdXAzMXNycllSUlJHS09NeUtVTWpGbVlzM0JpQU9ncjMyeFZKUE5YLyYjeEE7QURpUmE2bjVudU5RMHJXeHArbFhrelRTMmJ3R1I0UzU1TXNUQjFETFUvRHlwUWVPQlhvUG5YOGt2TC9tUDh2OU84bndUdllKb3dqLyYjeEE7QUVYZThSS3lNaUZHOVJhcHpFZ0pMVUkzM3dxa1A1Ty84NDhXL2tQVzMxN1VOVEdwNmtJM2h0RWppOU9LSlpObWVyTXpNNVhic0JVOSYjeEE7Y1ZaTCtmMy9BSkpyelovekF0L3hKY1ZZVC96aHQvNUtPYi90cTNQL0FDYWh4VjdyaXI1Zi9Kdi9BTmFiODVmOFp0WS82amhnVjlRWSYjeEE7VmRpcnNWZGlyc1ZZUCtlSC9rcHZNLzhBekJOL3hKY1ZZTi96aUYvNUxYVXYrMnpQL3dCUXR0aXIzSEZYWXE3RlhZcStHUDhBbkx6eiYjeEE7T3VyL0FKdFNhZkUxWU5DdEliT2c2R1Y2M0VoK2Y3NVZQK3JpcjF6L0FKd3I4c05aZVN0WTh3eXBTVFY3eFlJU2VwaHMxSXFQbkpNNCYjeEE7K2pGVTkvNXk1OG10cnY1WE5xc0Njcnp5OWNMZWJmYU52Sis2bkE5aHlWei9BS3VLdmp2OHUvTnMzbER6eG92bVNLcC9SdDBra3lyMSYjeEE7YUZ2Z21RZFB0Uk15NHEvUzYxdWJlNnRvcnEza0V0dk9peXd5cnVySTQ1S3c5aURpcXBpcjR0L0xEenQ1Zi9Mci9uSWZ6bmVlYjVaTiYjeEE7TnRaMjFPejliMHBKZUVrbDlIT2haWWxkK0xKRWFGVlBVZHQ4VmUrLzlEUi9rVC8xTTMvVGpxSC9BR1Q0cTcvb2FQOEFJbi9xWnY4QSYjeEE7cHgxRC9zbnhWMy9RMGY1RS93RFV6ZjhBVGpxSC9aUGlydjhBb2FQOGlmOEFxWnYrbkhVUCt5ZkZYZjhBUTBmNUUvOEFVemY5T09vZiYjeEE7OWsrS3NNL09UL25JbjhvdGQvTExYOUcwWFdtdnRUMUMzOUMydGt0THVPck02N2w1b29rQUEzUHhmTEZVNC81dzh0cmlIOG9PY3NiSSYjeEE7bHhxVjFMQXpDZ2RBc2NmSmZFYzBZZlJpcjNERlh5UDVTODI2SjVJLzV5TDgyNmo1bWxld3M1YnJVNHhLWXBKQ1ByRjBKWW1LUnF6OCYjeEE7V1RjRURBcjIzL29aSDhsLytwaS82Yzc3L3FoaFYzL1F5UDVML3dEVXhmOEFUbmZmOVVNVmQvME1qK1MvL1V4ZjlPZDkvd0JVTVZkLyYjeEE7ME1qK1MvOEExTVgvQUU1MzMvVkRGWGY5REkva3YvMU1YL1RuZmY4QVZERldKZm14K2ZQNVdhMStYZXVhVHBPc05lYWplMi9vMjF1dCYjeEE7cmRSbG1aMTM1U3hSb0FCdWF0K09LbzcvQUp4SnM3bTMvTEM1bG1qS1IzZXEzRTF1eEd6eGlHQ0lzUGJuRXcrakZYdFdLdXhWMktvUCYjeEE7V2RXc3RIMGkrMWErZjA3UFQ0SkxxNWZ3amhRdXgrNWNWZm1acldxYWw1bjh6M3VweXEwdW82emVTVG1KYXNUTGNTRWhGK2x1SXhWKyYjeEE7am41YytVNC9LUGtYUlBMaVU1YWRhcEhPeS9aYWR2am5jZXpTc3pZcW5lcGFmWjZscDExcDE3R0pyTzloa3Q3bUk5SGlsVW82bjVxeCYjeEE7R0t2elQ4LytVTDN5ZDV5MWJ5M2VWTW1uWERSeHlNS2VwQ2ZpaGwvNTZSc3JmVGlyN0QvNXhML01WZk1uNWVqeS9keTh0VjhzOGJhaiYjeEE7SDRuczNxYlpoL3FBR0xib0ZYeHhWN2ppckJmUEg1SS9sbjUzMUJkUzh3YVFzMm9xb1JyeUdTUzNrZFZGRkVoaVpPZEJzQzFTQnQweCYjeEE7VmpYL0FFS2YrU1gvQUZhSi93RHBNdWYrYThWZC93QkNuL2tsL3dCV2lmOEE2VExuL212RlhmOEFRcC81SmY4QVZvbi9BT2t5NS81ciYjeEE7eFYzL0FFS2YrU1gvQUZhSi93RHBNdWYrYThWZC93QkNuL2tsL3dCV2lmOEE2VExuL212RlYwWC9BRGlsK1NLU0s1MFdad3BCNE5lWCYjeEE7WEUwN0drZ3hWNnJwMm0yR21XRUduNmZieDJsamFvSXJlMmhVSkdpTHNGVlJzQmlxSXhWaC9uVDhvL0lIbk82aXZOZjB3VDNzUzhGdSYjeEE7b3BKSVpDZzZLN1JzdklDdTNMcDJ4VmpYL1FzZjVQZjlXcWIvQUtTN2ovbXZGWGY5Q3gvazkvMWFwdjhBcEx1UCthOFZkLzBMSCtUMyYjeEE7L1ZxbS93Q2t1NC81cnhWMy9Rc2Y1UGY5V3FiL0FLUzdqL212RlhmOUN4L2s5LzFhcHY4QXBMdVArYThWWFIvODR6Zms2a2l1ZElsYyYjeEE7S1FlRFhkelEwN0drZ3hWNlpZYWZZNmRaUTJOaEJIYTJkc2dqZ3Q0bENJaUxzRlZSc0JpcXZpcnNWZGlyNTgvNXpFL01KTkg4bDIvbCYjeEE7RzBscHFIbUJnOTBvTzZXVURCalh1UFVsQ3FQRUJoaXJ4djhBNXhQL0FDN2Z6TitZc2V0M1VYTFNmTFhHN2tMRDRXdTJxTFpQbXJBeSYjeEE7ZjdIM3hWOXo0cTdGWHpUL0FNNWpmbGcyb2FUYStmTk5pNVhXbUtMWFdGUVZMV3JOKzZtTlA5OU94VnZadkJjVmZPLzVPL21QZGZsOSYjeEE7NTdzZGVUazlpVDlXMVczWC9kdHBLUjZncDNaQ0E2LzVTakZYNkwyRi9aNmhZMjkvWlRMY1dkM0drOXRPaHFyeHlLR1JsUGdWTmNWViYjeEE7OFZkaXJzVmRpcnNWZGlyc1ZkaXJzVmRpcnNWZGlyc1ZkaXJzVmRpcnNWZGlyc1ZRMnFhbllhVnB0MXFXb1RMYjJObEU4OXpPK3lwSCYjeEE7R3BabVB5QXhWK2MzNW0rZDlUL01iOHdyM1doRkl4dnBsdHRLc2dPVHBBcDRRUkJSWDRqV3BwMVluRlgzTCtTUDViUmZsOTVBc3RHYyYjeEE7S2RVbi93QkwxZVZkK1YxS0J5VUh1c2FnSVBHbGUrS3M5eFYyS3FGL1lXZW9XTnhZWHNLM0ZuZHh2QmN3T0txOGNpbFhWaDRGVFRGWCYjeEE7NTRmblQrVnQ5K1hYblM0MHBnOG1rM05ialJydHQvVXR5ZnNsdW5xUkg0WCsvb1JpcjJmL0FKeEovT2xJR1Q4dTllbkN4eU1XOHUzTSYjeEE7aG9BN0dyMmhKL21KNVIrOVY3cU1WZlYrS3V4VjJLdXhWMkt1eFYyS3V4VjJLdXhWMkt1eFYyS3V4VjJLdXhWMkt1eFYyS3ZrNy9uTCYjeEE7bjg1VXVaRy9MdlE1dzBNVEsvbUc0UTFEU0tRMGRvQ1A1Q0E4bnZRZG1HS29mL25FZjhtbXZiMWZ6QzF5RC9RN1JpbWdRT3UwazY3UCYjeEE7Yzcvc3hmWlQvS3FkdUlxcSt1Y1ZkaXJzVmRpckNQemUvSzNTZnpHOHBUYVBkbFlMK0dzMmxYOUttQzRBb0s5eWo5SEhoN2dZcS9QaiYjeEE7ekJvR3ZlVlBNTnpwT3FReVdPcmFkTHhkZDFZTXBxa2tiQ2xWT3pJdzZqY1lxK3pmK2NjL3ordHZPK214ZVhmTUU2eGViN09PaXUxRiYjeEE7RjlFZy92VS80dEFIN3hSL3JEYW9WVjdqaXJzVmRpcnNWZGlyc1ZkaXJzVmRpcnNWZGlyc1ZkaXJzVmRpcnNWZGlyeGovbkl2ODliZiYjeEE7eURveDBiUnBWazgzYWpHZlFBb3dzNFdxUHJEaitiL2ZhbnZ1ZGhRcXZtbjhpL3lhMWI4enZNN1hlb21WZkxkcEw2dXNhaXhibE5JVCYjeEE7eU1FYm5kcFpLMVp2MlJ1ZHlvS3I3MjArd3N0T3NiZXdzWUV0cksxaldHM3Q0d0ZSSTBIRlZVRG9BQmlxdmlyc1ZkaXJzVmRpcnl2OCYjeEE7OVB5TDBqOHlkSStzVy9DeTgxV1NFYWZxQkZGa1ViL1Y3aW01ako2SHFoM0cxUVZYd3JmNmY1azhvK1kzdGJ1T2ZTZGQwcVlIcVk1WSYjeEE7cFl6VlhSbCs5V1UwSTNHS3ZzcjhnLzhBbkpIVFBPa052NWU4eXlSMlBtMUZDUlNtaVEzOU51VWZSVWwvbWo3OVY4RlZlNllxN0ZYWSYjeEE7cTdGWFlxN0ZYWXE3RlhZcTdGWFlxN0ZYWXE3RlhZcThkL1BiL25JVFIveTl0Sk5KMHN4My9tK1pQM1ZyWGxIYWhoVlpiaW5mZXF4OSYjeEE7VDNvT3FyNWkvTEQ4cXZPbjV4K2JMalZOUXVKdjBhMC9xYTVyODN4TVdQeEdLS3V6U2xlZ0h3b0tWMm9DcSs2Zkt2bFhRdkt1aFd1aCYjeEE7NkhhcmFhZGFMeGpqWHFUKzA3dDFaMk83TWV1S3B0aXJzVmRpcnNWZGlyc1ZkaXJ6djg0UHlUOHNmbVZwWVc4SDFMWExaU3VuNnhFbyYjeEE7TWlkU0k1VjI5U0twcnhydDJJM3hWOE5lZnZ5NDg0L2w3cnY2UDEyMWEza0RGcksvaXFZSjFRN1NRU2dDdE5qVFpsN2dZcTl2L0pmLyYjeEE7QUp5MXV0UFdEUWZ6Q2VTN3Nsb2x2cjZndlBHQnNCY29ONVYveXg4ZmlHNmhWOVg2VHJHbGF4cDhPcGFWZHczMWhjTHlndXJkMWtqWSYjeEE7ZXpLU051K0tvdkZYWXE3RlhZcTdGWFlxN0ZYWXE3RlhZcTdGVk81dXJhMHQ1Ym02bFNDMmhVdk5QS3dSRVJSVXN6TlFBQWR6aXI1aCYjeEE7L09qL0FKeTJnaFdmUXZ5N2tFMDVxbHg1aFpmZ1RzUmFvdytJL3dERmpDbjhvT3pZcXdyOG5mOEFuR2p6TjU1dTA4emVjM3VMSFFyaCYjeEE7L3JEZXNXK3ZYNWM4aXdMMVpVZXRUSTI3ZnM5ZVdLdnNuUk5EMGpRdEt0dEowZTBqc3ROdEU5TzN0b2hSVlhyOUpKM0pPNU81eFZIWSYjeEE7cTdGWFlxN0ZYWXE3RlhZcTdGWFlxbGZtWHl2NWY4ejZSTnBHdldNV29hZk9QamdtRmFIc3lNS01qRHN5a0VZcStUdnpWLzV4QTEzUyYjeEE7bW0xUHlKSTJyNmNLdTJsVEZSZVJqd2piNFVtQStodTFHT0t2SWZLSDVnL21KK1cyc3pMcE4xY2FYY1J2UyswcTVRK2t6Q2xWbXRwUiYjeEE7VGxUYXRBdzdFWXErbmZ5OS93Q2N4dkorcmlPMDgzMnJhQmZHZyt1UmNyaXpjK0pvUFZpcWV4RER4YkZYdk9rYTNvK3MyS1gra1gwRyYjeEE7b1dVbjJMbTFrU2FNL3dDeVFrWXFqY1ZkaXJzVmRpcnNWZGlyc1ZVN201dDdXQ1M0dVpVZ3Q0bExTelNNRVJWSFVzelVBR0t2R1B6QiYjeEE7L3dDY3NQeTM4c2lTMjBlUnZNdXFMVUNPellMYXEzYm5kRUZTUCtNWWZGWGdkN3FmNTlmbjdmOEFvVzBEalFVay91WXEyMmx3a0dvTSYjeEE7a2pWOVYxNjdsbThCaXIzbjhwLytjV2ZKM2s4dzZucnhUekI1Z1NqSzhxZjZKQS9YOTFDMWViRCtkL21BdUt2YnNWZGlyc1ZkaXJzViYjeEE7ZGlyc1ZkaXJzVmRpcnNWZGlyc1ZZcjU0L0s3eUo1NHR4RjVrMG1HN2xSZU1ONEt4M01ZL3lKazR2VHZ4SjQrMkt2bmZ6dC96aFJmUiYjeEE7czl4NUwxcEo0dHlMRFZCd2tIc3R4RXBWajg0MStlS3ZJYnp5SitkMzVhM3JYeTZmcXVpdW16NmhZTTdRRURvSG10aThaQi9sWS9SaSYjeEE7ckxQTFAvT1gzNXNhU3F4YWsxbnJzSW9DYnVIMDVxRHdrdHpFSys3SzJLdlM5Ri81emY4QUw4Z1VhMzVadTdVL3RQWlR4M05mY0xLTCYjeEE7YjdxNHF5Nngvd0NjdmZ5YnVSV2E0djdJK0U5b3pIL2tpMHVLcHBGL3psTitSYm9HYnpHMFpQVkdzYjhrZlBqQXcvSEZVRmRmODVhLyYjeEE7a3RDaGFQVWJxNklyUllyT1lFMC80eUNNYjRxeGpWLytjMmZJc0NzTkowTFVyNlFkUHJCZ3RVSi8xbGU0Yi9oY1ZZUGZmODVaL203NSYjeEE7cHVHc1BKZmwySzJtZjdLMjBNdXBYYTE2VTJFZjN4WXFoby95US81eVIvTXFkTG56anFFbGxaT1E0R3FYSHdxTzVqc29PUVJ2WXFtSyYjeEE7dlcvSW4vT0kzNWIrWG1pdXRiTW5tWFVFMy8wb0NLMEJIaGJJVHkrVWpzUGJGWHRscGFXdG5iUjJ0cERIYjIwS2hJWUlsQ1JvbzZLcSYjeEE7cUFBUGxpcXJpcnNWZGlyc1ZkaXJzVmRpcnNWZGlyc1ZkaXJzVmRpcnNWZGlyc1ZkaXJIdGUvTHp5SDVnWjMxcnkvcCtvU3ZYbFBQYiYjeEE7Uk5MdjFwTHg1ajZEaXJDTlMvNXhhL0pLOUpaZEJhMGticTl0ZFhLZmNqU09nLzRIRlVqbi93Q2NOdnlqbDU4SnRWZzVmWjlPNWpQSCYjeEE7NWM0WC9HdUtxRUgvQURoZitWRVpKZSsxbVlIb0h1TFlBZjhBQVd5WXFtbGovd0E0amZreGJGVE5aWGw3eDZpZTdsV3U5ZC9SOUg1YiYjeEE7WXF5elIveUkvSi9TQ3BzL0tkZ3hXbkZycU0zWkZPaHJjbVUxeFZtdG5ZMlZqYnJiMlZ2SGEyNmZaaGhSWTBIeVZRQmlxdGlyc1ZkaSYjeEE7cnNWZGlyc1ZkaXJzVmRpcnNWZGlyc1ZkaXJzVmRpcnNWZGlyc1ZkaXJzVmRpcnNWZGlyc1ZkaXJzVmRpcnNWZGlyc1ZkaXJzVmRpciYjeEE7c1ZkaXJzVmRpckUvelc4NFgzazN5RHFubVN4aGl1THF4OUQwNForWHB0NjF6SENlWEVxMnl5RTljVlNqOGp2ekkxWDh3ZktkM3JPcCYjeEE7MnNGcFBiMzhsbXNkdHo0RkVoaGtESG16bXRaVGlyMFBGWG5uNTQvbVJxdjVmZVU3VFdkTXRZTHVlNHY0N05vN25ud0NQRE5JV0hCayYjeEE7TmF4REZVZzhwK2R2ejM4MGVYckxYOU0wbnk2TEcrVm5nRTAxMmtsRmRrUEpSeUEzVTk4VlRmNi8vd0E1RS84QVZxOHMvd0RJKzgvcCYjeEE7aXIwZTFOeWJhRTNRVmJrb3ZyckhVb0hwOFFXdTlLOU1WU2Z6enIxejVlOG42enJsdEdrdHhwdHBMY3hSU1Y0TTBhbGdHNGtHbnlPSyYjeEE7dkgveTYvT1A4NC9QOE45Tm9Xa2FFcWFlMGFUL0FGbVM2ak5aUXhYanhaNi9ZT0JVYjVtL05qODYvSmR1TlU4eitUN0M0MFJHVlo3ciYjeEE7VDdoNkp5UEVjbUptS1ZKQUJaS1YycmhWNkwrWFA1a2VYdlB1aGZwVFNIS1NSRVIzdGpMVDFvSkQwRGdkUTFLcXcyUHpCQVZUdlh0ZiYjeEE7MGZRTkp1TlgxaTZTejArMVhuUFBKV2dIUUFBVkxNVHNGQXFUMHhWNWJvUDVwL21IK1lWek8va0xSN1hUZkw5dTVqYlhkYjlSekl3NiYjeEE7aUdDQXI4US8xbUE3a0hiRlU0MVUvbjFvMXUxN1p6YUw1bVNPcnphZUxlYXl1R1hyeGdmMVpFTER0eS9FNHFpZnl4L09meTM1N010aSYjeEE7a2NtbGVZYlVINjNvMXlmM2c0bWpHTnFMNmdVN05zR0hkUmlyMERGWG1QNXJmbno1WjhoU2ZvNVltMVh6QXloaHAwVEJGaURDcW1lUyYjeEE7amNLOVFvQmIyQU5jVlNQUXRiLzV5YTh5d3BxRVduNko1Y3NwQ0hoaDFCSi9XYU0veklwbWNHaC9hQ2ZSaXFaeS9taDUzOGx6MjhmNSYjeEE7bTZQYkpwVnc0aVh6TG9yU1Myc2NoNkNlR1FlcWxmNXZ1VTlsWHFkdmNRWE52RmNXOGl6Vzh5TEpES2hESTZNS3F5c05pQ0RVSEZWVCYjeEE7RlhqV20vbjFGZC9uaGNlU3lZaG9OR3NMUzUvYWJVSXZpWWw2L1paZzBTanhBUGZGWHN1S3NDL09yOHd0VDhoZVQwMXpUYmFDNnVHdSYjeEE7NHJZeFhIUGh4a1YySitCbE5mZzhjVlJmNVJlZHRRODYrUnJQekRmd1JXMTFjeVRJOFVITDB3SXBXakZPWlk3aGZIRldaWXE3RlhtbiYjeEE7L09TUC9rbC9NWC9Sbi8xSFFZcXhuL25FTC95V3VwZjl0bWYvQUtoYmJGWHVPS3ZEditjdmYvSmE2Yi8yMllQK29XNXhWTXZ5UDgrKyYjeEE7UmROL0tyeS9aYWo1ajB1eXZZWXBSTmJYRjdieFNvVFBJUUdSM0REWTEzR0t2VHRHOHkrWE5jV1Y5RjFXejFSWUNCTzFsY1JYQVF0WCYjeEE7aUhNVE54clEwcmlxWTRxeEQ4My9BUHlWdm1yL0FMWmx6L3liT0t2SFArY1BMcTFnMDN6T0o1a2lMVFduSG13V3RGbDZWT0FLOVEvTyYjeEE7VHp6NVIwajh2OWNndjc2M2x1TCt5bnRiU3dXUldsbGtuamFOYUlwTGNRV3F6ZHNLdk52K2NRZksrczJkbHJmbUM2aGVEVHRSRUVGaSYjeEE7WHFQV01KY3lPb1BWVjVCUTNqWHd3S3huL25MWHpsZVh2bXV6OHB3dXkyR21RcGN6eEN0SHVwd1NwSTc4SWlPUCtzMkt2cGp5WjVjdCYjeEE7ZkxYbFRTdEN0a0NKWVcwY1Q4ZjJwQXRaWE5PN3VTeDl6aFZPY1ZmSVgvT1FzRng1Si9PaTA4eWFHd3RycTdpaDFOU215L1dGZG9wUSYjeEE7UUtWRWdqcS84M0k0RmZTR3QrZkxleS9MQ2J6dENvOU50TFhVTFdKK2hlZUlOQ2pkT3J1b09GWHpmL3pqVDVYL0FNWS9tTnFQbWJYUyYjeEE7Yjl0S0F2SkhsK0xuZlhMbjAzZW9vYWNaSEgrVUI0WUZmWHVGVUZyZWphYnJlazNlazZuQ0xpd3ZZbWh1SW03cXc3SHNSMUI3SGZGVSYjeEE7QjVLOHAyZmxMeXpaZVg3SzRudXJheVVxazEwL09ROG1MSG9BQW9KK0ZRTmhpcVQvQUp2K2QvOEFCM2tTL3dCVGgzMUtjQ3owcU1icyYjeEE7MTFPQ3FFRHZ3RlhwL2s0cStaL3pWL0tMVXZ5Kzh2ZVUvTXR0STY2bFJWMWlkU1dNZW84amNSdUdOUnRVcFgvSUI2bkFyNnAvTHZ6aCYjeEE7YmVjUEptbCtZSWFCcnVFZldZeC91dTRqUENaUGtIVTA5cUhDcnp2L0FKeXkvd0RKWFJmOXRPMy9BT1RjdUtwbC93QTR4LzhBa250SyYjeEE7L3dDTTEzLzFFUGlyMVhGWFlxODAvd0Nja2Y4QXlTL21ML296L3dDbzZERldNLzhBT0lYL0FKTFhVdjhBdHN6L0FQVUxiWXE5eHhWNCYjeEE7ZC96bDcvNUxYVGYrMnpCLzFDM09Lb3I4ay95MS9ML1Z2eXQwRFVOVDh2V0Y1ZlhFVWhudVpvRWVSeUo1RkJaaUtuWUFZcTlSMER5bCYjeEE7NVo4dXBNbWhhWGJhWWx5Vk02MjBheGh5bFFwYmlONmNqaXFiWXF4RDgzLy9BQ1Z2bXIvdG1YUC9BQ2JPS3ZuNy9uR0w4dS9Kbm02eCYjeEE7OHdTZVl0TVRVSHM1YlpiWXU4aWNCSXNoYW5wc25YaU91Qlhwdm0vL0FKeGYvTHJVdE1uL0FFQmJQb3VyaFMxcFBGTks4UmxBK0FTcCYjeEE7SzB2d1Y2OEtIQ3JFditjY2Z6ZjgwMy9tT1R5UDVtbWErWVJ5R3d1cGFHZU43ZjdjTHQxZGVJSkJPNEk4T2dWZ2YvT1QrazNlbC9tNSYjeEE7TnFuRWlQVTRMYTd0NUNLcVdnalczWWZNR0VWSHVQSEZYMkxwOTliMzloYlgxczNPM3U0a25oY2Qwa1VNcCs0NFZWOFZmSlAvQURsMSYjeEE7cUNYWG4vU3ROaFBxU1dtbnFYUlJVaVNlWnlGK2ZGVlAwNEZleCtiZktPb1Evd0RPT3MvbHhFSnY3TFJJQkxHTnlaTFJFbGxVRDNNYiYjeEE7QVlWZVhmOEFPSE9yV3NPcytaZEpkZ0xtOWd0cm1FRTlWdFhrVjZmOUpDNEFyNmt3cTdGVnNja2NzYXlSc0hqY0JrZFNDQ0QwSUl4ViYjeEE7ODkvbUhyM21EelIrY0ZyQm9IbCtYelBwUGtOMWt2TEtPZExhTnRRbUJaV2VTUU1QM2JJQUY0OVZic2NWVFB6MXIzNXBlY1BLZW8rWCYjeEE7YjM4clo0NHI2UGlrNDFXM1l4U3FROFVnWDBscndkUWFWRmVtS3NRLzV4WDgzWFdpZVp0VjhnYXVEYnlYRHlTMjBFaG9VdmJiNEo0cSYjeEE7ZUxScFgvWVlGWjMvQU01WmYrU3VpLzdhZHY4QThtNWNLcGwvempIL0FPU2Uwci9qTmQvOVJENHE5VnhWMkt2T2YrY2lMVzV1dnlkOCYjeEE7d1FXMEx6enY5VDRSUktYYzB2b0NhS3RUMEZjVmVXZjg0Ky9tRHBua2Z5WmU2VHIybmFvbDVQcU10MUdJYkdhUmZUZUNHTWJnZGVVVCYjeEE7WUZlbmY5REFlUy8rV0hXZis0YlAvVENyRi84QW5KNHo2LzhBbFBvZDVwZHJjVHJkNmphM1VjSWlmMWxqa3M3aGh6akFMS1J6QU5laCYjeEE7eFZSL0tmOEFOdnk5NVovTHpSdEMxVFQ5V1cvc281RW5XUFQ1M1VGcG5jVVlEZlpoaXJMditoZ1BKZjhBeXc2ei93QncyZjhBcGlyMCYjeEE7ZTF1RXViYUc0akRCSmtXUkF3NHNBNHFLZzlEdmlyRi96Wmhtbi9MUHpQRENqU3l5YWJjS2thQXN6RXhtZ0FHNU9Ldm5yL25Idnp4RCYjeEE7NUFzOWJoMTNSdFhaOVFrdDNnK3JXYnlDa1N5QnVYSXBUN1l3SzlDOHkvOEFPUjEzTFpTMnZsRHlqclYzcThxbExhUzZ0R1NKR0kyYyYjeEE7SkdaWGs0bjltaTE4Y0twUi93QTQ2L2t0NWkwYldwZk9mbXFKN08rS1NKWVdNaEhxMW1xSlpwZ1BzN0VoVjY3a21tMVFyMHo4M2Z5cSYjeEE7MHo4dy9Md3NwWEZ0cXRtV2swdStwVVJ1d0hKSEEzTWNuRWNxZXg3VXdxd1A4dXZ6QjF6OHVkTGk4by9tYnA5ellXK24vdTlMOHdKRyYjeEE7OXhadGJqWklua2hEMDRkRlA4dEF3V202ckxOWi9QOEEvTCszdFhYUXJpWHpKcTdyVzAwclRJWlpaSkdPeThtQ2NVRmV2ZndCeFZoWCYjeEE7NWNmazE1bDE3enROK1kvNWtSTERmU3pyZFdHakFnbFhTZ2hhVUF0eFNGVlVJbGVXM3hkS0ZWNytRQ0NDS2c3RUhGWHpENTYvSlh6cCYjeEE7NUQ4NVIrZC95MmhhOHM0cFRjZm8yRUY1b09WZlVoOUlmRk5BNEpXaWZFQWFkdVdCV2JhRi93QTVUZVNKTGNRK1o3VzgwRFZvaFM1dCYjeEE7cElIbGo1OUR3S0QxUCtEUVlWVXRmL01QemgrWk5zM2wvd0RMZlRicXowMjhIcDZqNXJ2NDJ0NFk0VzJkYmV0U3pNTnFqNGgyQSswRiYjeEE7V1gzTnRZL2xWK1U4dHZvOFV0NUpwZHN5MmlCV2trbnZKanN4UmVSbzByOG1BK3l2eXhWYitTSGt1NDhzZVJvRzFJRTY5ckR0cVdzeSYjeEE7di9lR2U0K0lJNU85VVNnYi9LNWVPS3ZRTVZmTFAvT1FYazdYZkxINW02WjU1OHNXc3J0ZU9seS8xZU5uQ1hsc1Y1OHdnUHd5cHhKLyYjeEE7bStMQXJOZitjaDd1ZnpQK1MrbDZqcDFuT3pYdDNhWEgxUVJ1MDBmS0tRc3JvQlVGR1BFN2RjS3BYK1NuNW82SjVSL0x5eDBMV2RPMSYjeEE7WkwrM2t1SGtXS3dua1dra3pPdEdBOERpck92K2hnUEpmL0xEclA4QTNEWi82WXE5SmlrV1NKSkZxRmRRd0JGRFFpdTR4Vi8vMlE9PTwveG1wR0ltZzppbWFnZT4KICAgICAgICAgICAgICAgPC9yZGY6bGk+CiAgICAgICAgICAgIDwvcmRmOkFsdD4KICAgICAgICAgPC94bXA6VGh1bWJuYWlscz4KICAgICAgICAgPHhtcE1NOkluc3RhbmNlSUQ+eG1wLmlpZDoxZjA4MGExMS1iMThlLTQ0ZDktYjk5Ny1iZDA2ODYwYjQxMTY8L3htcE1NOkluc3RhbmNlSUQ+CiAgICAgICAgIDx4bXBNTTpEb2N1bWVudElEPnhtcC5kaWQ6MWYwODBhMTEtYjE4ZS00NGQ5LWI5OTctYmQwNjg2MGI0MTE2PC94bXBNTTpEb2N1bWVudElEPgogICAgICAgICA8eG1wTU06T3JpZ2luYWxEb2N1bWVudElEPnV1aWQ6NUQyMDg5MjQ5M0JGREIxMTkxNEE4NTkwRDMxNTA4Qzg8L3htcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD4KICAgICAgICAgPHhtcE1NOlJlbmRpdGlvbkNsYXNzPmRlZmF1bHQ8L3htcE1NOlJlbmRpdGlvbkNsYXNzPgogICAgICAgICA8eG1wTU06RGVyaXZlZEZyb20gcmRmOnBhcnNlVHlwZT0iUmVzb3VyY2UiPgogICAgICAgICAgICA8c3RSZWY6aW5zdGFuY2VJRD54bXAuaWlkOjA0NGFmN2ZmLTAwZmItNDc3NS04ZmU3LTk3MjgxYzVlMzk3NDwvc3RSZWY6aW5zdGFuY2VJRD4KICAgICAgICAgICAgPHN0UmVmOmRvY3VtZW50SUQ+eG1wLmRpZDowNDRhZjdmZi0wMGZiLTQ3NzUtOGZlNy05NzI4MWM1ZTM5NzQ8L3N0UmVmOmRvY3VtZW50SUQ+CiAgICAgICAgICAgIDxzdFJlZjpvcmlnaW5hbERvY3VtZW50SUQ+dXVpZDo1RDIwODkyNDkzQkZEQjExOTE0QTg1OTBEMzE1MDhDODwvc3RSZWY6b3JpZ2luYWxEb2N1bWVudElEPgogICAgICAgICAgICA8c3RSZWY6cmVuZGl0aW9uQ2xhc3M+ZGVmYXVsdDwvc3RSZWY6cmVuZGl0aW9uQ2xhc3M+CiAgICAgICAgIDwveG1wTU06RGVyaXZlZEZyb20+CiAgICAgICAgIDx4bXBNTTpIaXN0b3J5PgogICAgICAgICAgICA8cmRmOlNlcT4KICAgICAgICAgICAgICAgPHJkZjpsaSByZGY6cGFyc2VUeXBlPSJSZXNvdXJjZSI+CiAgICAgICAgICAgICAgICAgIDxzdEV2dDphY3Rpb24+c2F2ZWQ8L3N0RXZ0OmFjdGlvbj4KICAgICAgICAgICAgICAgICAgPHN0RXZ0Omluc3RhbmNlSUQ+eG1wLmlpZDpjNDQxZmIzNC1kM2Q3LTRlMGMtOTU5OC02OGE1ZjQ5MTVjMDc8L3N0RXZ0Omluc3RhbmNlSUQ+CiAgICAgICAgICAgICAgICAgIDxzdEV2dDp3aGVuPjIwMjYtMDItMTJUMTA6MzQ6NDArMDE6MDA8L3N0RXZ0OndoZW4+CiAgICAgICAgICAgICAgICAgIDxzdEV2dDpzb2Z0d2FyZUFnZW50PkFkb2JlIElsbHVzdHJhdG9yIDI5LjUgKE1hY2ludG9zaCk8L3N0RXZ0OnNvZnR3YXJlQWdlbnQ+CiAgICAgICAgICAgICAgICAgIDxzdEV2dDpjaGFuZ2VkPi88L3N0RXZ0OmNoYW5nZWQ+CiAgICAgICAgICAgICAgIDwvcmRmOmxpPgogICAgICAgICAgICAgICA8cmRmOmxpIHJkZjpwYXJzZVR5cGU9IlJlc291cmNlIj4KICAgICAgICAgICAgICAgICAgPHN0RXZ0OmFjdGlvbj5zYXZlZDwvc3RFdnQ6YWN0aW9uPgogICAgICAgICAgICAgICAgICA8c3RFdnQ6aW5zdGFuY2VJRD54bXAuaWlkOjFmMDgwYTExLWIxOGUtNDRkOS1iOTk3LWJkMDY4NjBiNDExNjwvc3RFdnQ6aW5zdGFuY2VJRD4KICAgICAgICAgICAgICAgICAgPHN0RXZ0OndoZW4+MjAyNi0wMi0xMlQxMDozNjo1MCswMTowMDwvc3RFdnQ6d2hlbj4KICAgICAgICAgICAgICAgICAgPHN0RXZ0OnNvZnR3YXJlQWdlbnQ+QWRvYmUgSWxsdXN0cmF0b3IgMjkuNSAoTWFjaW50b3NoKTwvc3RFdnQ6c29mdHdhcmVBZ2VudD4KICAgICAgICAgICAgICAgICAgPHN0RXZ0OmNoYW5nZWQ+Lzwvc3RFdnQ6Y2hhbmdlZD4KICAgICAgICAgICAgICAgPC9yZGY6bGk+CiAgICAgICAgICAgIDwvcmRmOlNlcT4KICAgICAgICAgPC94bXBNTTpIaXN0b3J5PgogICAgICAgICA8aWxsdXN0cmF0b3I6U3RhcnR1cFByb2ZpbGU+UHJpbnQ8L2lsbHVzdHJhdG9yOlN0YXJ0dXBQcm9maWxlPgogICAgICAgICA8aWxsdXN0cmF0b3I6Q3JlYXRvclN1YlRvb2w+QWRvYmUgSWxsdXN0cmF0b3I8L2lsbHVzdHJhdG9yOkNyZWF0b3JTdWJUb29sPgogICAgICAgICA8cGRmOlByb2R1Y2VyPkFkb2JlIFBERiBsaWJyYXJ5IDE3LjAwPC9wZGY6UHJvZHVjZXI+CiAgICAgIDwvcmRmOkRlc2NyaXB0aW9uPgogICA8L3JkZjpSREY+CjwveDp4bXBtZXRhPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgCjw/eHBhY2tldCBlbmQ9InciPz7/4AAQSkZJRgABAgEASABIAAD/7QAsUGhvdG9zaG9wIDMuMAA4QklNA+0AAAAAABAASAAAAAEAAQBIAAAAAQAB/9sAhAAQCwsLDAsQDAwQFw8NDxcbFBAQFBsfFxcXFxcfHhca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" alt="Le Bocal" style="height:36px;border-radius:4px;vertical-align:middle;margin-left:8px;"></div>
+  <div class="cc">Licence Creative Commons CC BY-NC-ND 4.0 — Pas d'usage commercial, pas de modification, attribution obligatoire</div>
+</footer>
+
+<script>
+function showTab(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function showFiche(btn, id) {
+  document.querySelectorAll('.fiche-tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  ['p5','p6','s1'].forEach(f => {
+    const el = document.getElementById('fiche-' + f);
+    if (el) el.style.display = f === id ? 'block' : 'none';
+  });
+}
+
+const SIZES = {
+  petit:  {gMin:6,  gMax:10,  tMin:20,  tMax:35},
+  moyen:  {gMin:18, gMax:32,  tMin:45,  tMax:90},
+  grand:  {gMin:60, gMax:100, tMin:150, tMax:240},
+  tgrand: {gMin:150,gMax:250, tMin:360, tMax:600},
+};
+const COLOR_FACTOR = {1:1.0,2:1.15,3:1.25,4:1.30};
+const COLOR_TIPS = {
+  1:'',
+  2:'Avec 2 couleurs, prévoir un changement de filament manuel ou une imprimante bicolore.',
+  3:'Avec 3 couleurs, une imprimante multicolore (Snapmaker, Bambu Lab) est recommandée.',
+  4:'Avec 4 couleurs, seule une imprimante multicolore permet ce résultat en une seule impression.',
+};
+let currentSize='petit', currentColors=1;
+
+function selectSize(btn, size) {
+  document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentSize = size;
+  updateEstimate();
+}
+function selectColor(btn, n) {
+  document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentColors = n;
+  updateEstimate();
+}
+function updateEstimate() {
+  const s = SIZES[currentSize];
+  const cf = COLOR_FACTOR[currentColors];
+  const bobineEl=document.getElementById('adv-bobine');
+  const elecEl=document.getElementById('adv-elec');
+  const wattsEl=document.getElementById('adv-watts');
+  const amortEl=document.getElementById('adv-amort');
+  const bobine=bobineEl?parseFloat(bobineEl.value)||22:22;
+  const elec=elecEl?parseFloat(elecEl.value)||0.29:0.29;
+  const watts=wattsEl?parseFloat(wattsEl.value)||120:120;
+  const amort=amortEl?parseFloat(amortEl.value)||1.74:1.74;
+  const gMin=Math.round(s.gMin*cf), gMax=Math.round(s.gMax*cf);
+  const cMin=(gMin/1000)*bobine+(s.tMin/60)*(watts/1000)*elec+amort;
+  const cMax=(gMax/1000)*bobine+(s.tMax/60)*(watts/1000)*elec+amort;
+  function fmtTime(min){if(min<60)return min+' min';const h=Math.floor(min/60),m=min%60;return m>0?h+'h'+m.toString().padStart(2,'0'):h+'h';}
+  document.getElementById('res-cout').textContent=cMin.toFixed(2)+'–'+cMax.toFixed(2)+' €';
+  document.getElementById('res-temps').textContent=fmtTime(s.tMin)+' – '+fmtTime(s.tMax);
+  document.getElementById('res-filament').textContent='~'+gMin+'–'+gMax+' g';
+  const tip=document.getElementById('res-tip');
+  const colorTip=COLOR_TIPS[currentColors];
+  let v=cMax<2?'✓ Coût très faible — clairement rentable par rapport à un achat.':cMax<6?'~ Coût modéré — comparer avec un article similaire en commerce.':'⚠ Coût élevé — envisager une version simplifiée ou un achat.';
+  tip.textContent=v+(colorTip?' '+colorTip:'');
+  tip.className='result-tip '+(cMax<2?'tip-good':cMax<6?'tip-mid':'tip-warn');
+}
+updateEstimate();
+</script>
+</body>
+</html>
